@@ -1,5 +1,5 @@
 # bme280
-Lightweight and short library for Bosch sensor BME280 (test).
+Lightweight and short library for Bosch sensor BME280 (in development).
 
 It operate and return integer values of t,p,h at once.
 Further you can convert to float in calling procedure.
