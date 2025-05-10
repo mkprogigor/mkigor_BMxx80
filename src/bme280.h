@@ -49,21 +49,21 @@ struct struct_tph {
 /*************************************************/
 class bme280 {
     public:
-        bme280();	    					// create an object of class bme280
-        uint8_t f_check_bme(void);			// check sensor with address 0x76 	
+        bme280();                           // create an object of class bme280
+        uint8_t f_check_bme(void);          // check sensor with address 0x76 	
         bool begin();                       // default parameters
         bool begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h); // init bme280
-        void f_do_1_meas(void);				// do 1 measurement and go to sleep (only for FORCED_MODE)
-        bool f_bme_is_meas(void);			// returns TRUE while the bme280 IS measuring					
-        struct_tph f_read_TPH(void);    	// read, calculate and return int structure T*100, P*100, H*1000
+        void f_do_1_meas(void);             // do 1 measurement and go to sleep (only for FORCED_MODE)
+        bool f_bme_is_meas(void);           // returns TRUE while the bme280 IS measuring					
+        struct_tph f_read_TPH(void);        // read, calculate and return int structure T*100, P*100, H*1000
     
     private:
-        uint8_t _f_read_reg(uint8_t address);					// read 1 byte from bme280 register by i2c
-        bool _f_write_reg(uint8_t address , uint8_t data);		// write 1 byte to bme280 register
+        uint8_t _f_read_reg(uint8_t address);   // read 1 byte from bme280 register by i2c
+        bool _f_write_reg(uint8_t address , uint8_t data);  // write 1 byte to bme280 register
         uint8_t _i2c_address = 0x76;	
         bool _f_reset(void);                // bme280 software reset 
         void _read_calibr_coeff(void);      // read calibration coeff
-        struct {		                    // structure of calibration coefficients
+        struct {                            // structure of calibration coefficients
             uint16_t  dig_T1;
             int16_t   dig_T2;
             int16_t   dig_T3;

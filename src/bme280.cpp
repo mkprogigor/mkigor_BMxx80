@@ -5,7 +5,8 @@ uint8_t _reg_0xF2 = 0x07;	//	config regs osr_h[2:0]
 uint8_t _reg_0xF4 = 0xFE;	//	config regs osr_t[7:5] osr_p[4:2] mode[1:0]
 uint8_t _reg_0xF5 = 0x9C;	//	config regs t_sb[7:5] filter[4:2] spi3w_en[0]
 
-uint8_t bme280::f_check_bme(void) {
+uint8_t bme280::f_check_bme(void) {		// check is it conected bme280,
+	//	if YES ret chip_code (0x60) then do software reset, if NO ret 0. 
 	Wire.begin(); // start I2C interface
 	uint8_t error;
     Wire.beginTransmission(_i2c_address);
@@ -16,6 +17,7 @@ uint8_t bme280::f_check_bme(void) {
         Wire.endTransmission();
         Wire.requestFrom(_i2c_address, 1);
         if (Wire.available() == 1)  return Wire.read();
+		_f_reset();
     }
     else {
         Wire.beginTransmission(_i2c_address + 1);
@@ -27,6 +29,7 @@ uint8_t bme280::f_check_bme(void) {
             Wire.endTransmission();
             Wire.requestFrom(_i2c_address, 1);
             if (Wire.available() == 1)  return Wire.read();
+			_f_reset();
         }
     }
 /*  fn return 0x58>BMP280, 0x60>BME280, 0x61>BME680. IF not present 0x76, 0x77 then return 0.
@@ -34,7 +37,6 @@ uint8_t bme280::f_check_bme(void) {
     note: address 0x77 may be BMP085, BMA180 and may not be MS5607 or MS5637 CHECK */
     return 0;
 }
-
 
 bool bme280::begin() {	// defaults are 16x; Normal mode; 0.5ms, no filter, I2C
 	return begin(0x02, 0x04, 0x07, 0x07, 0x07, 0x07);	//	Forse mode, sleep 500ms, filter x16, t p h x16
@@ -174,7 +176,6 @@ bool bme280::_f_reset(void) {     //  software reset of bme280
 	if (bme280::_f_write_reg(0x0E, 0xB6)) return true;
     else return false;
 }
-
 
 void bme280::_read_calibr_coeff(void) {
     uint8_t _tv_regs[25];
