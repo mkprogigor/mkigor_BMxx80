@@ -9,9 +9,10 @@ Max measuring takes about 200 mS. Reading t,p,h takes one I2C request.
 It's suitable for weather station.
 
 Function bme280.f_read_TPH() return structure:
+<pre>
 struct struct_tph {
-  int32_t  temp1;  //  t * 100
-  unt32_t  pres1;  //  p * 100
-  unt32_t  humi1;  //  h * 1000
-};
+  int32_t  temp1;  //  real t = t * 100
+  unt32_t  pres1;  //  real p = p * 100
+  unt32_t  humi1;  //  real h = h * 1000
+};</pre>
 real values can get: ((float)(struct_tph.temp1)) / 100.
