@@ -8,7 +8,6 @@ struct_tph KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################
 f_check_bme     KEYWORD2
-f_reset         KEYWORD2
 begin           KEYWORD2
 f_do_1_meas 	KEYWORD2
 f_bme_is_meas   KEYWORD2
