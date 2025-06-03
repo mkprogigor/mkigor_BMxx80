@@ -13,8 +13,8 @@ V1.0 from 01.06.2025
 #ifndef mkigor_bme280_h
 #define mkigor_bme280_h
 
-#include "Arduino.h"
-#include "Wire.h"
+#include <Arduino.h>
+#include <Wire.h>
 
 #define NOR_MODE	0x03
 #define FOR_MODE	0x02

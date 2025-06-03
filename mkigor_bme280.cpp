@@ -10,7 +10,7 @@ https://github.com/farmerkeith/I2CScanner/
 V1.0 from 01.06.2025
 ************************************************************************************/
 
-#include "mkigor_bme280.h"
+#include <mkigor_bme280.h>
 
 uint8_t _i2c_address = 0x76;
 uint8_t _reg_0xF2 = 0x07;	//	config regs osr_h[2:0]
