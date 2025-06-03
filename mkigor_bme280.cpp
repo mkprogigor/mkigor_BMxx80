@@ -1,5 +1,5 @@
 /************************************************************************************
-Library for test and use in weather stations with Bosch i2c sensor bme280
+Library for test and use Bosch i2c sensor bme280
 by Igor Mkprog, mkprogigor@gmail.com
 
 use examples:
@@ -9,6 +9,7 @@ https://github.com/farmerkeith/I2CScanner/
 
 V1.0 from 01.06.2025
 ************************************************************************************/
+
 #include "mkigor_bme280.h"
 
 uint8_t _i2c_address = 0x76;
