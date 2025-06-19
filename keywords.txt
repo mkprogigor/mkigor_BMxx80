@@ -1,7 +1,7 @@
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
-bme280	    KEYWORD1
+BMx280	    KEYWORD1
 struct_tph  KEYWORD1
 
 #######################################
@@ -37,3 +37,6 @@ FIL_x2	LITERAL1
 FIL_x4	LITERAL1
 FIL_x8	LITERAL1
 FIL_x16	LITERAL1
+BMP280  LITERAL1
+BME280  LITERAL1
+BME680  LITERAL1

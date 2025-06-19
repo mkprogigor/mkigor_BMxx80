@@ -1,4 +1,4 @@
-# mkigor_bme280
+# mkigor_BMx280
 Lightweight and short library for Bosch sensor BME280 for Arduino (in development).
 
 It operate and return values of t,p,h at once.
