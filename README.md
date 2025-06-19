@@ -1,7 +1,7 @@
 # mkigor_bme280
 Lightweight and short library for Bosch sensor BME280 for Arduino (in development).
 
-It operate and return integer values of t,p,h at once.
+It operate and return values of t,p,h at once.
 By default, lib focused on one time measuring (forced mode, but normal available too) 
 with max oversampling x16 of t,p,h, and filter x16. It's suitable for weather station.
 
@@ -26,7 +26,7 @@ makes 1 measurement and goes to sleep. You should make delay for waitung result.
 Acording to mode, sleep time, oversamlinhg value it can takes 200 ms. It's possible use vTaskDelay(200) in FreeRTOS.
 
 Function => `bool is_meas(void)`<BR>
-returns TRUE while the bme280 IS measuring, otherwise FALSE.
+returns TRUE while the bme280 IS MEASuring, otherwise FALSE.
 
 Function => `struct_tph read_TPH(void)`<BR>
 It DOES NOT make measurement, only read and decoding value T,P,H for one I2C request and return structure:
