@@ -2,11 +2,10 @@
 Lightweight and short library for Bosch sensor BME280 for Arduino (in development).
 
 It operate and return integer values of t,p,h at once.
-Further you can convert to float in calling procedure.
 By default, lib focused on one time measuring (forced mode, but normal available too) 
 with max oversampling x16 of t,p,h, and filter x16. It's suitable for weather station.
 
-Function => `uint8_t f_check_bme()`<BR>
+Function => `uint8_t check()`<BR>
 check connection with bme280, return byte: 0 if not present bme280 or CHIP CODE, and makes SW reset.<br>
 `/*  fn return 0x58=>BMP280, 0x60=>BME280, 0x61=>BME680. IF not present 0x76, 0x77 then return 0.
     i2c address 0x77 possible for BMP280 or BME280 or BME680 or MS5607,MS5611,MS5637
@@ -22,24 +21,22 @@ t_sb = standby (sleep) time, from SB_500US to SD_1000MS<BR>
 filter  =  value of filterring - FIL_OFF, FIL_x2, FIL_x4, FIL_x8, FIL_x16<BR>
 osrs_t, osrs_p, osrs_h = oversampling value for T,P,H - OS_OFF, OS_x1, OS_x2, OS_x4, OS_x8, OS_x16*
 
-Function => `void f_do_1_meas(void)`<BR>
+Function => `void do1meas(void)`<BR>
 makes 1 measurement and goes to sleep. You should make delay for waitung result.
 Acording to mode, sleep time, oversamlinhg value it can takes 200 ms. It's possible use vTaskDelay(200) in FreeRTOS.
 
-Function => `bool f_bme_is_meas(void)`<BR>
+Function => `bool is_meas(void)`<BR>
 returns TRUE while the bme280 IS measuring, otherwise FALSE.
 
-Function => `struct_tph f_read_TPH(void)`<BR>
-DOES NOT make measurement, only read and decoding value t,p,h for one I2C request and return structure:
+Function => `struct_tph read_TPH(void)`<BR>
+It DOES NOT make measurement, only read and decoding value T,P,H for one I2C request and return structure:
 ```c++
 struct struct_tph {
-  int32_t   temp1;  //  real t = t * 100
-  uint32_t  pres1;  //  real p = p * 100
-  uint32_t  humi1;  //  real h = h * 1000
+  float temp1;
+  float pres1;
+  float humi1;
 };
 ```
-real values can get: `T = ((float)(struct_tph.temp1)) / 100`.
-
 Functions don't use of delay, it should do it manually for benefits of using FreeRTOS.
 Or usuing CPU resources for checkking results. Max measuring time takes about 200 mS, but You can check it.
 

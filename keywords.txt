@@ -1,17 +1,17 @@
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
-bme280	KEYWORD1
-struct_tph KEYWORD1
+bme280	    KEYWORD1
+struct_tph  KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
-f_check_bme     KEYWORD2
-begin           KEYWORD2
-f_do_1_meas 	KEYWORD2
-f_bme_is_meas   KEYWORD2
-f_read_TPH  	KEYWORD2
+check       KEYWORD2
+begin       KEYWORD2
+do1meas 	KEYWORD2
+is_meas     KEYWORD2
+read_TPH  	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
@@ -19,8 +19,8 @@ f_read_TPH  	KEYWORD2
 NOR_MODE	LITERAL1
 FOR_MODE	LITERAL1
 SB_500US	LITERAL1
-SB_10MS	LITERAL1
-SB_20MS	LITERAL1
+SB_10MS	    LITERAL1
+SB_20MS	    LITERAL1
 SB_6250US	LITERAL1
 SB_125MS	LITERAL1
 SB_250MS	LITERAL1

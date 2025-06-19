@@ -7,7 +7,7 @@ https://github.com/AlexGyver/GyverLibs/blob/master/GyverBME280/
 https://github.com/farmerkeith/BMP280-library/
 https://github.com/farmerkeith/I2CScanner/
 
-V1.0 from 01.06.2025
+V1.1 from 18.06.2025
 ************************************************************************************/
 
 #ifndef mkigor_bme280_h
@@ -42,24 +42,24 @@ V1.0 from 01.06.2025
 #define FIL_x16  0x04
 
 struct struct_tph {
-    int32_t  temp1;
-    uint32_t pres1;
-    uint32_t humi1;
+    float temp1;
+    float pres1;
+    float humi1;
 };
 
 /*************************************************/
 class bme280 {
     public:
         bme280();                           // create an object of class bme280
-        uint8_t bme_check(void);            // check sensor with address 0x76 	
+        uint8_t check(void);            // check sensor with address 0x76 	
         bool begin();                       // default parameters
         bool begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h); // init bme280
-        void bme_do1meas(void);             // do 1 measurement and go to sleep (only for FORCED_MODE)
-        bool bme_is_meas(void);             // returns TRUE while the bme280 IS measuring					
-        struct_tph bme_read_TPH(void);      // read, calculate and return int structure T*100, P*100, H*1000
+        void do1meas(void);             // do 1 measurement and go to sleep (only for FORCED_MODE)
+        bool is_meas(void);             // returns TRUE while the bme280 IS measuring					
+        uint8_t _i2c_address = 0x76;
+        struct_tph read_TPH(void);      // read, calculate and return int structure T*100, P*100, H*1000
     
     private:
-        uint8_t _i2c_address = 0x76;	
         uint8_t _f_read_reg(uint8_t address);   // read 1 byte from bme280 register by i2c
         bool _f_write_reg(uint8_t address , uint8_t data);  // write 1 byte to bme280 register
         bool _f_reset(void);                    // bme280 software reset 
