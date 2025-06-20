@@ -3,15 +3,15 @@
 */
 
 #include <Arduino.h>
-#include "bme280.h"
+#include "mkigor_BMx280.h"
 
-bme280 bme;
+BMx280 bme;
 struct_tph result;
 
 void setup() {
 	Serial.begin(115200);
 
-	uint8_t k = bme.f_check_bme();
+	uint8_t k = bme.check(0x76);
 	if (k == 0) {
 		Serial.println("BME280 not found. Check wires conection.");	
 	}
@@ -23,17 +23,17 @@ void setup() {
 }
 
 void main() {
-	bme.f_do_1_meas();
-	result = bme.f_read_TPH();
+	bme.do1meas();
+	result = bme.read_TPH();
 
 	Serial.print("Temperature, C = ");
-	Serial.println((float)(result.temp1)/100);
+	Serial.println(result.temp1);
 
 	Serial.print("Pressure, Pa = ");
-	Serial.println((float)(result.pres1)/100);
+	Serial.println(result.pres1);
 
 	Serial.print("Humidity, % = ");
-	Serial.println((float)(result.humi1)/1000);
+	Serial.println(result.humi1);
 
 	delay(3000);
 }
