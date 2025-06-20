@@ -1,18 +1,20 @@
 # mkigor_BMx280
-Lightweight and short library for Bosch sensor BME280 for Arduino (in development).
+Lightweight and short library for Bosch sensor BME280 and BMP280 (maybe BME680) for Arduino (in development).
 
 It operate and return values of t,p,h at once.
 By default, lib focused on one time measuring (forced mode, but normal available too) 
 with max oversampling x16 of t,p,h, and filter x16. It's suitable for weather station.
 
-Function => `uint8_t check()`<BR>
-check connection with bme280, return byte: 0 if not present bme280 or CHIP CODE, and makes SW reset.<br>
-`/*  fn return 0x58=>BMP280, 0x60=>BME280, 0x61=>BME680. IF not present 0x76, 0x77 then return 0.
-    i2c address 0x77 possible for BMP280 or BME280 or BME680 or MS5607,MS5611,MS5637
-    note: address 0x77 may be BMP085, BMA180 and may not be MS5607 or MS5637 CHECK */`
+Function => `uint8_t check(uint8_t _lv_i2caddr)`<BR>
+check connection with i2c sensor by address.
+It must be call 1st, becouse it checks present sensor and read calibrated data.
+fn Input byte I2C address of sensor BME280 OR BMP280 (0x76 or 0x77).
+fn return byte: 0 if not present sensor or CHIP CODE, and makes SW reset.
+CHIP CODEs: 0x58=>BMP280, 0x60=>BME280, 0x61=>BME680. 
+note: i2c address 0x77 possible for BMP280 or BME280 or BME680 or MS5607,MS5611,MS5637 CHECK It.
 
 Function => `bool begin()`<BR>
-setup bme280 to FORCED MODE, with x16 oversampling for T,P,H and x16 filter. Return TRUE when is Ok. :-)
+setup bme280 to FORCED MODE, with x16 oversampling for T,P,H and x16 filter. Return TRUE when is Ok :-)
 
 Function => `bool begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h)`<BR>
 init bme280 with Your parameters. Return TRUE when is Ok. :-)<BR>
