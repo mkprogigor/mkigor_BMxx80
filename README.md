@@ -7,10 +7,10 @@ with max oversampling x16 of t,p,h, and filter x16. It's suitable for weather st
 
 Function => `uint8_t check(uint8_t _lv_i2caddr)`<BR>
 check connection with i2c sensor by address.
-It must be call 1st, becouse it checks present sensor and read calibrated data.
-fn Input byte I2C address of sensor BME280 OR BMP280 (0x76 or 0x77).
-fn return byte: 0 if not present sensor or CHIP CODE, and makes SW reset.
-CHIP CODEs: 0x58=>BMP280, 0x60=>BME280, 0x61=>BME680. 
+It must be call 1st, becouse it checks present sensor and read calibrated data.<BR>
+fn Input byte I2C address of sensor BME280 OR BMP280 (0x76 or 0x77).<BR>
+fn return byte: 0 if not present sensor or CHIP CODE, and makes SW reset.<BR>
+CHIP CODEs: 0x58=>BMP280, 0x60=>BME280, 0x61=>BME680.<BR>
 note: i2c address 0x77 possible for BMP280 or BME280 or BME680 or MS5607,MS5611,MS5637 CHECK It.
 
 Function => `bool begin()`<BR>
