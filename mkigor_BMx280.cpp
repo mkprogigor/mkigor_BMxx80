@@ -93,9 +93,9 @@ struct_tph BMx280::read_TPH(void) {
 		adc_P = ((_lv_regs[0] << 16) | (_lv_regs[1] << 8) | _lv_regs[2]) >> 4;
 	}
 
-	Serial.print("adc_T = ");	Serial.println(adc_T);
-	Serial.print("adc_P = ");	Serial.println(adc_P);
-	Serial.print("gv_i2c_address = ");	Serial.println(gv_i2c_address, HEX);
+	// Serial.print("adc_T = ");	Serial.println(adc_T);
+	// Serial.print("adc_P = ");	Serial.println(adc_P);
+	// Serial.print("gv_i2c_address = ");	Serial.println(gv_i2c_address, HEX);
 	// Serial.print(_cd.dig_T1);	Serial.print(_cd.dig_T2);	Serial.print(_cd.dig_T3);
 	// Serial.print(_cd.dig_P1);	Serial.print(_cd.dig_P2);	Serial.print(_cd.dig_P3);
 	// Serial.print(_cd.dig_P4);	Serial.print(_cd.dig_P5);	Serial.print(_cd.dig_P6);
@@ -113,8 +113,6 @@ struct_tph BMx280::read_TPH(void) {
 		t_fine = lv_var1 + lv_var2;
 		lv_tph.temp1  = ((float)((t_fine * 5 + 128) >> 8)) / 100;
 	}
-	// Serial.print("t_fine = ");	Serial.println(t_fine);
-	// Serial.print("T = ");		Serial.println(lv_tph.temp1);
 
 	BME280_S64_t var1, var2, p;
 	if (adc_P == 0x800000) {
@@ -158,7 +156,6 @@ struct_tph BMx280::read_TPH(void) {
 			lv_tph.humi1 = ((float)((BME280_U32_t)(((v_x1_u32r >> 12) * 1000) / 1024))) / 1000;
 		}
 	}
-
 	return lv_tph;
 }
 
