@@ -1,5 +1,5 @@
 /*
-	Example of using mkprogigor/bme280
+	Example of using mkigor_BMx280
 */
 
 #include <Arduino.h>
