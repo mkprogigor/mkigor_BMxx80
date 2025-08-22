@@ -16,7 +16,7 @@ cl_*    -   class;
 cd_*    -   class definishion;
 cgv_*   -   class public (global) member (variable);
 clv_*   -   class private (local) member (variable);
-cf_*    -   class public function (metod), not need, no usefull, becouse we see parenthesis => ();
+cgf_*   -   class public function (metod), not need, no usefull, becouse we see parenthesis => ();
 clf_*   -   class private (local) metod (function);
 
 *_stru  -   suffix, as usual, point the type.
@@ -88,7 +88,7 @@ private:
         int16_t  dig_P8;
         int16_t  dig_P9;
     } clv_cd;
-    void    clf_readCalibCoef(void);                        // read calibration coeff
+    void clf_readCalibCoef(void);                        // read calibration coeff, datas
 
 public:
     cl_BMP280() {           // default class constructor
@@ -103,9 +103,9 @@ public:
     void do1meas(void);         // do 1 measurement and go to sleep (only for FORCED_MODE)
     bool is_meas(void);         // returns TRUE while the bme280 IS measuring					
 
-    bool begin();               // init BMx280 with default parameters FORCED mode and max measuring 
-    bool begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h); // overloaded function init
-    gv_tp_stru read_tp(void);   // read, calculate and return int structure T*100, P*100
+    void begin();               // init BMP280 with default parameters FORCED mode and max measuring 
+    void begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p); // overloaded function init
+    gv_tp_stru read_tp(void);   // read, calculate and return structure T, P
 
 };
 
@@ -136,7 +136,7 @@ private:
         int16_t dig_H5;
         int8_t  dig_H6;
     } clv_cd;
-    void    clf_readCalibCoef(void);                        // read calibration coeff
+    void clf_readCalibCoef(void);                        // read calibration coeff
 
 public:
     cl_BME280() {           // default class constructor
@@ -146,7 +146,7 @@ public:
 
     bool begin();               // init BMx280 with default parameters FORCED mode and max measuring 
     bool begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h); // overloaded function init
-    gv_tph_stru read_tph(void); // read, calculate and return int structure T*100, P*100, H*1000
+    gv_tph_stru read_tph(void); // read, calculate and return structure T, P, H
 
 };
 

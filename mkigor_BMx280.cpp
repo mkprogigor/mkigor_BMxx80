@@ -12,27 +12,26 @@ V1.2 from 19.06.2025
 
 #include <mkigor_BMx280.h>
 
-// uint8_t _i2c_address = 0x76;
 uint8_t _reg_0xF2 = 0x07;	//	config regs osr_h[2:0]
 uint8_t _reg_0xF4 = 0xFE;	//	config regs osr_t[7:5] osr_p[4:2] mode[1:0]
 uint8_t _reg_0xF5 = 0x9C;	//	config regs t_sb[7:5] filter[4:2] spi3w_en[0]
 
-uint8_t BMx280::check(uint8_t _lv_i2caddr) {	// check is it conected bm(e,p)280, if YES ret chip_code, if NO ret 0
-	gv_i2c_address = _lv_i2caddr;
+uint8_t cl_BMP280::check(uint8_t _lv_i2caddr=clv_i2cAddr) {
+	// check is it conected bm(e,p)280, if YES ret chip_code, if NO ret 0
+	clv_i2cAddr = _lv_i2caddr;
 	Wire.begin();
-	uint8_t error;
-    Wire.beginTransmission(gv_i2c_address);
-    error = Wire.endTransmission();
-    if (error == 0) {
-        Wire.beginTransmission(gv_i2c_address);
+	uint8_t lv_error;
+    Wire.beginTransmission(clv_i2cAddr);
+    lv_error = Wire.endTransmission();
+    if (lv_error == 0) {
+        Wire.beginTransmission(clv_i2cAddr);
         Wire.write(0xD0);   // Select register 0xD0 hex address of chip_id
         Wire.endTransmission();
-        Wire.requestFrom(gv_i2c_address, 1);
+        Wire.requestFrom(clv_i2cAddr, 1);
 		if (Wire.available() == 1) {
-			gv_code_chip = Wire.read();
-			_f_reset();
-			BMx280::_f_read_calibr_coeff();
-			return gv_code_chip;
+			clv_codeChip = Wire.read();
+			reset();
+			return clv_codeChip;
 		}
     }
     return 0;
@@ -41,23 +40,36 @@ uint8_t BMx280::check(uint8_t _lv_i2caddr) {	// check is it conected bm(e,p)280,
 	note: address 0x77 may be BMP085, BMP180. CHECK IT */
 }
 
-bool BMx280::begin() {	// defaults are 16x; Normal mode; 0.5ms, no filter, I2C
-	return begin(0x02, 0x04, 0x07, 0x07, 0x07, 0x07); // Forse mode, sleep 500ms, filter x16, t p h x16
+void cl_BMP280::begin() {	// defaults are 16x; Normal mode; 0.5ms, no filter, I2C
+	begin(cd_FOR_MODE, cd_SB_500MS, cd_FIL_x16, cd_OS_x16, cd_OS_x16); // Forse mode, sleep 500ms, filter x16, t p h x16
   }
 
-bool BMx280::begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h) {	// init bme280
-	// bme280::_f_read_calibr_coeff();
+void cl_BMP280::begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p) {	// init bme280
+	cl_BMP280::read_calibCoef();
+	_reg_0xF4 = (osrs_t<<5) | (osrs_p<<2) | mode;
+	_reg_0xF5 = (t_sb << 5) | (filter << 2) | 0x00;
+	
+	cl_BMP280::writeReg(0xF4, _reg_0xF4);
+	cl_BMP280::writeReg(0xF5, _reg_0xF5);
+};    
+
+void cl_BME280::begin() {	// defaults are 16x; Normal mode; 0.5ms, no filter, I2C
+	begin(cd_FOR_MODE, cd_SB_500MS, cd_FIL_x16, cd_OS_x16, cd_OS_x16, cd_OS_x16); // Forse mode, sleep 500ms, filter x16, t p h x16
+}
+
+void cl_BME280::begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h) {	// init bme280
+	cl_BME280::read_calibCoef();
 	_reg_0xF2 = osrs_h;
 	_reg_0xF4 = (osrs_t<<5) | (osrs_p<<2) | mode;
 	_reg_0xF5 = (t_sb << 5) | (filter << 2) | 0x00;
 	
-	if (gv_code_chip != BMP280) {
-		BMx280::_f_write_reg(0xF2, _reg_0xF2);
-	}
-	BMx280::_f_write_reg(0xF4, _reg_0xF4);
-	BMx280::_f_write_reg(0xF5, _reg_0xF5);
-	return true;
+	cl_BME280::writeReg(0xF2, _reg_0xF2);
+	cl_BME280::writeReg(0xF4, _reg_0xF4);
+	cl_BME280::writeReg(0xF5, _reg_0xF5);
 };    
+
+
+
 
 bool BMx280::is_meas(void) {	// returns TRUE while bme280 is measuring								
 	return (bool)((BMx280::_f_read_reg(0xF3) & 0x08) >> 3);  	 // read status register & mask bit "measuring"
