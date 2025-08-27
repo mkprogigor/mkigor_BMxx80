@@ -1,15 +1,15 @@
 # mkigor_BMx280
 Lightweight and short library for Bosch sensor BME280 and BMP280 (maybe BME680) for Arduino.
-It is not pretende to the most optimal code, but is example of learning C++ OOP.
+It is not pretend to the most optimal code, but it is example of learning C++ OOP for programing MCU.
 Classes, Encapsulating metods (functions), Inheritance classes.
 It has two classes: cl_BMP280 and cl_BME280. Class BME280 inherit BMP280.
 
 By default, lib focused on one time measuring (forced mode, but normal available too) 
 with max oversampling x16 of T,P,H, and filter x16. It's suitable for weather station.
 
-Function => `uint8_t check(uint8_t _lv_i2caddr)`<BR>
+Function => `uint8_t check(uint8_t lv_i2caddr)`<BR>
 It must be call 1st, becouse it checks presence of sensor!<BR>
-Fn check connection with sensor BME280 or BMP280 by I2C address `_lv_i2caddr` (0x76 or 0x77).<BR>
+Fn check connection with sensor BME280 or BMP280 by I2C address `lv_i2caddr` (0x76 or 0x77).<BR>
 Fn return byte: 0 if not present sensor or CHIP CODE.<BR>
 Possible chip codes are: 0x58=>BMP280, 0x60=>BME280, 0x61=>BME680.<BR>
 Note: i2c address 0x77 possible for BMP280 or BME280 or BME680 or MS5607,MS5611,MS5637, - check it.<BR>
@@ -44,7 +44,7 @@ struct tph_srtu {
 ```
 Function => `tph_stru readTPH(void)`<BR>
 It return values of T,P,H in structure variable.<BR>
-It DOES NOT make measurement, only read in one I2C request, decoding to value T,P,H and return it in structure variable.<BR>
+It DOES NOT make measurement, only read data in one I2C request, decoding to value T,P,H and return it in structure variable.<BR>
 
 I used oficial Bosch datasheet bmp280, bme280 and examples for making this lib:<BR>
 https://github.com/GyverLibs/GyverBME280<BR>

@@ -29,9 +29,9 @@ Metods (functions) dont use symbol '_', only small or capital lett
 //============================================
 //	common public metod (function) for cl_BMP280 and cl_BME280
 //============================================
-uint8_t cl_BMP280::check(uint8_t _lv_i2caddr) {
+uint8_t cl_BMP280::check(uint8_t lv_i2caddr) {
 	// check is it conected bm(e,p)280, if YES ret chip_code, if NO ret 0
-	clv_i2cAddr = _lv_i2caddr;
+	clv_i2cAddr = lv_i2caddr;
 	Wire.begin();
 	uint8_t lv_error;
     Wire.beginTransmission(clv_i2cAddr);

@@ -100,7 +100,7 @@ public:
     uint8_t readReg(uint8_t address);                   // read 1 byte from bme280 register by i2c
     bool    writeReg(uint8_t address, uint8_t data);    // write 1 byte to bme280 register
     bool    reset(void);                                // bme280 software reset 
-    uint8_t check(uint8_t _lv_i2caddr);   // function with parameter default value
+    uint8_t check(uint8_t lv_i2caddr);   // function with parameter default value
                         // check sensor with i2c address or DEFAULT i2c address, return code chip
     void do1Meas(void);         // DO 1 MEASurement and go to sleep (only for FORCED_MODE)
     bool isMeas(void);         // returns TRUE while the bme280 IS MEASuring					
