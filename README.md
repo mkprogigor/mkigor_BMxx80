@@ -43,7 +43,7 @@ struct tph_srtu {
 };
 ```
 Function => `tph_stru readTPH(void)`<BR>
-It return values of T,P,H in structure variable.
+It return values of T,P,H in structure variable.<BR>
 It DOES NOT make measurement, only read in one I2C request, decoding to value T,P,H and return it in structure variable.<BR>
 
 I used oficial Bosch datasheet bmp280, bme280 and examples for making this lib:<BR>
