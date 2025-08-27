@@ -43,8 +43,9 @@ struct tph_srtu {
 };
 ```
 Function => `tph_stru readTPH(void)`<BR>
-This metod (function) DOES NOT make measurement!
-The function only reads data in one I2C request, decoding to value T,P,H and return it in structure variable.<BR>
+This metod (function) DOES NOT make measurement!<BR>
+The function only reads data in one I2C request,<BR>
+decoding to value T,P,H and return it in structure variable.<BR>
 
 I used oficial Bosch datasheet bmp280, bme280 and examples for making this lib:<BR>
 https://github.com/GyverLibs/GyverBME280<BR>
