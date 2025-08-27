@@ -20,6 +20,8 @@ cgf_*   -   Class public (Global) metod (Function), not need, no usefull, becous
 clf_*   -   Class private (Local) metod (Function);
 
 *_stru  -   [or *_stru_t] suffix, as usual, point the type.
+
+Metods (functions) dont use symbol '_', only small or capital letters (ex.: onlySmallOrCapitalLetters)
 ************************************************************************************/
 
 #ifndef mkigor_BMx280_h
@@ -105,7 +107,7 @@ public:
 
     void begin();               // init BMP280 with default parameters FORCED mode and max measuring 
     void begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p); // overloaded function init
-    tp_stru read_tp(void);   // read, calculate and return structure T, P
+    tp_stru readTP(void);   // read, calculate and return structure T, P
 
 };
 
@@ -146,7 +148,7 @@ public:
 
     void begin();               // init BMx280 with default parameters FORCED mode and max measuring 
     void begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h); // overloaded function init
-    tph_stru read_tph(void); // read, calculate and return structure T, P, H
+    tph_stru readTPH(void); // read, calculate and return structure T, P, H
 
 };
 

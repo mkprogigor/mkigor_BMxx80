@@ -7,7 +7,7 @@ https://github.com/AlexGyver/GyverLibs/blob/master/GyverBME280/
 https://github.com/farmerkeith/BMP280-library/
 https://github.com/farmerkeith/I2CScanner/
 
-V1.3 from 30.08.2025
+V1.0 from 30.08.2025
 
 Glossary, abbreviations used in the module, prefix and suffix:
 gv_*    -   Global Variable;
@@ -20,6 +20,8 @@ cgf_*   -   Class public (Global) metod (Function), not need, no usefull, becous
 clf_*   -   Class private (Local) metod (Function);
 
 *_stru  -   [or *_stru_t] suffix, as usual, point the type.
+
+Metods (functions) dont use symbol '_', only small or capital lett
 ************************************************************************************/
 
 #include <mkigor_BMx280.h>
@@ -128,7 +130,7 @@ void cl_BMP280::begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t
 	cl_BMP280::writeReg(0xF5, lv_reg_0xF5);
 };    
 
-tp_stru cl_BMP280::read_tp(void) {
+tp_stru cl_BMP280::readTP(void) {
 #define BME280_S32_t int32_t		// make compatible code to BOSCH datasheet example
 #define BME280_U32_t uint32_t
 #define BME280_S64_t int64_t
@@ -250,7 +252,7 @@ void cl_BME280::begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t
 	cl_BME280::writeReg(0xF5, lv_reg_0xF5);
 };    
 
-tph_stru cl_BME280::read_tph(void) {
+tph_stru cl_BME280::readTPH(void) {
 #define BME280_S32_t int32_t		// make compatible code to BOSCH datasheet example
 #define BME280_U32_t uint32_t
 #define BME280_S64_t int64_t
