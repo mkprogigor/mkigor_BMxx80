@@ -8,17 +8,17 @@ By default, lib focused on one time measuring (forced mode, but normal available
 with max oversampling x16 of T,P,H, and filter x16. It's suitable for weather station.
 
 Function => `uint8_t check(uint8_t lv_i2caddr)`<BR>
-It must be call 1st, becouse it checks presence of sensor!<BR>
+It must be call 1st, because it checks presence of sensor!<BR>
 Fn check connection with sensor BME280 or BMP280 by I2C address `lv_i2caddr` (0x76 or 0x77).<BR>
-Fn return byte: 0 if not present sensor or CHIP CODE.<BR>
+Fn return byte: 0 = if sensor does not present or CHIP CODE in otherwise.<BR>
 Possible chip codes are: 0x58=>BMP280, 0x60=>BME280, 0x61=>BME680.<BR>
 Note: i2c address 0x77 possible for BMP280 or BME280 or BME680 or MS5607,MS5611,MS5637, - check it.<BR>
 
 Function => `void begin()`<BR>
-Default setup bmp280 or bme280 to FORCED MODE, with x16 oversampling for T,P,H and x16 filter.<BR>
+Default setup for bmp280 or bme280: FORCED MODE, with x16 oversampling and x16 filter.<BR>
 
 Function => `void begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h)`<BR>
-Default setup bmp280 or bme280 with Your parameters:<BR>
+Default setup for bmp280 or bme280 with Your parameters:<BR>
 mode = NOR_MODE or FOR_MODE; <BR>
 t_sb = standby (sleep) time, from SB_500US to SD_1000MS;<BR>
 filter  =  value of filterring - FIL_OFF, FIL_x2, FIL_x4, FIL_x8, FIL_x16;<BR>
@@ -26,14 +26,14 @@ osrs_t, osrs_p, osrs_h = oversampling value for T,P,H - OS_OFF, OS_x1, OS_x2, OS
 
 Function => `void do1Meas(void)`<BR>
 Makes 1 measurement and goes to sleep (FORCED MODE).<BR>
-You should make delay for waitung result.<BR>
-Functions don't use of delay, it should do delay manually or usuing CPU resources for checkking results (`isMeas()`).
+The function don't use delay or wait for result, only send command to sensor - start measuring.<BR>
+You should do delay and check moment (`isMeas()`) when measuring data will be finish.<BR>
 You can use vTaskDelay(200) for benefits of using FreeRTOS.<BR>
 Max time measuring takes about 200 mS, acording to mode, sleep time, filter and oversamlinhg value.<BR>
 But You can check it.<BR>
 
 Function => `bool isMeas(void)`<BR>
-returns TRUE while the bme280 IS MEASuring, otherwise FALSE.<BR>
+returns TRUE while the bmp280 or bme280 IS MEASuring, otherwise FALSE.<BR>
 
 ```c++
 struct tph_srtu {
