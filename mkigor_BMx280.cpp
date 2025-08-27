@@ -24,11 +24,6 @@ clf_*   -   Class private (Local) metod (Function);
 
 #include <mkigor_BMx280.h>
 
-// uint8_t _reg_0xF2 = 0x07;	//	declare default config regs osr_h[2:0]
-// uint8_t _reg_0xF4 = 0xFE;	//	declare default config regs osr_t[7:5] osr_p[4:2] mode[1:0]
-// uint8_t _reg_0xF5 = 0x9C;	//	declare default config regs t_sb[7:5] filter[4:2] spi3w_en[0]
-
-
 //============================================
 //	common public metod (function) for cl_BMP280 and cl_BME280
 //============================================
