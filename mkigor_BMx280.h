@@ -7,19 +7,19 @@ https://github.com/AlexGyver/GyverLibs/blob/master/GyverBME280/
 https://github.com/farmerkeith/BMP280-library/
 https://github.com/farmerkeith/I2CScanner/
 
-V1.3 from 22.08.2025
+V1.3 from 30.08.2025
 
 Glossary, abbreviations used in the module, prefix and suffix:
-gv_*    -   global variable;
-lv_*    -   local variable (live inside statement);
-cl_*    -   class;
-cd_*    -   class definishion;
-cgv_*   -   class public (global) member (variable);
-clv_*   -   class private (local) member (variable);
-cgf_*   -   class public function (metod), not need, no usefull, becouse we see parenthesis => ();
-clf_*   -   class private (local) metod (function);
+gv_*    -   Global Variable;
+lv_*    -   Local Variable (live inside statement);
+cl_*    -   CLass;
+cd_*    -   Class Definishion;
+cgv_*   -   Class public (Global) member (Variable);
+clv_*   -   Class private (Local) member (Variable);
+cgf_*   -   Class public (Global) metod (Function), not need, no usefull, becouse we see parenthesis => ();
+clf_*   -   Class private (Local) metod (Function);
 
-*_stru  -   suffix, as usual, point the type.
+*_stru  -   [or *_stru_t] suffix, as usual, point the type.
 ************************************************************************************/
 
 #ifndef mkigor_BMx280_h
@@ -57,11 +57,11 @@ clf_*   -   class private (local) metod (function);
 #define cd_BME280  0x60
 #define cd_BME680  0x61
 
-struct gv_tp_stru {
+struct tp_stru {
     float temp1;
     float pres1;
 };
-struct gv_tph_stru {
+struct tph_stru {
     float temp1;
     float pres1;
     float humi1;
@@ -98,14 +98,14 @@ public:
     uint8_t readReg(uint8_t address);                   // read 1 byte from bme280 register by i2c
     bool    writeReg(uint8_t address, uint8_t data);    // write 1 byte to bme280 register
     bool    reset(void);                                // bme280 software reset 
-    uint8_t check(uint8_t _lv_i2caddr = clv_i2cAddr);   // function with parameter default value
+    uint8_t check(uint8_t _lv_i2caddr);   // function with parameter default value
                         // check sensor with i2c address or DEFAULT i2c address, return code chip
-    void do1meas(void);         // do 1 measurement and go to sleep (only for FORCED_MODE)
-    bool is_meas(void);         // returns TRUE while the bme280 IS measuring					
+    void do1Meas(void);         // DO 1 MEASurement and go to sleep (only for FORCED_MODE)
+    bool isMeas(void);         // returns TRUE while the bme280 IS MEASuring					
 
     void begin();               // init BMP280 with default parameters FORCED mode and max measuring 
     void begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p); // overloaded function init
-    gv_tp_stru read_tp(void);   // read, calculate and return structure T, P
+    tp_stru read_tp(void);   // read, calculate and return structure T, P
 
 };
 
@@ -144,9 +144,9 @@ public:
         clv_codeChip = 0;       //  default code chip 0 => not found.
     }
 
-    bool begin();               // init BMx280 with default parameters FORCED mode and max measuring 
-    bool begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h); // overloaded function init
-    gv_tph_stru read_tph(void); // read, calculate and return structure T, P, H
+    void begin();               // init BMx280 with default parameters FORCED mode and max measuring 
+    void begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h); // overloaded function init
+    tph_stru read_tph(void); // read, calculate and return structure T, P, H
 
 };
 
