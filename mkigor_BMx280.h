@@ -7,7 +7,7 @@ https://github.com/AlexGyver/GyverLibs/blob/master/GyverBME280/
 https://github.com/farmerkeith/BMP280-library/
 https://github.com/farmerkeith/I2CScanner/
 
-V1.3 from 30.08.2025
+V1.0 from 30.08.2025
 
 Glossary, abbreviations used in the module, prefix and suffix:
 gv_*    -   Global Variable;
