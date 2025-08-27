@@ -51,3 +51,6 @@ I used oficial Bosch datasheet bmp280, bme280 and examples for making this lib:<
 https://github.com/GyverLibs/GyverBME280<BR>
 https://github.com/farmerkeith/BMP280-library/<BR>
 https://github.com/farmerkeith/I2CScanner/<BR>
+
+Example of use this lib in my project of "Easy DIY weather station"<BR>
+https://github.com/mkprogigor/mkigor_esp32c3_ws<BR>
