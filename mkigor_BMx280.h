@@ -22,7 +22,8 @@ clf_*   -   Class private (Local) metod (Function);
 *_stru  -   [or *_stru_t] suffix, as usual, point the type.
 
 Metods (functions) dont use symbol '_', only small or capital letters (ex.: onlySmallOrCapitalLetters)
-************************************************************************************/
+***********************************************************************************
+*/
 
 #ifndef mkigor_BMx280_h
 #define mkigor_BMx280_h
@@ -68,10 +69,16 @@ struct tph_stru {
     float pres1;
     float humi1;
 };
+struct tphg_stru {
+    float temp1;
+    float pres1;
+    float humi1;
+    float gasr1;
+};
 
-/*************************************************/
+//================================================
 //      class cl_BMP280
-/*************************************************/
+//================================================
 class cl_BMP280 {
 private:
     uint8_t clv_i2cAddr;
@@ -102,18 +109,17 @@ public:
     bool    reset(void);                                // bme280 software reset 
     uint8_t check(uint8_t lv_i2caddr);   // function with parameter default value
                         // check sensor with i2c address or DEFAULT i2c address, return code chip
-    void do1Meas(void);         // DO 1 MEASurement and go to sleep (only for FORCED_MODE)
+    void do1Meas(void);        // DO 1 MEASurement and go to sleep (only for FORCED_MODE)
     bool isMeas(void);         // returns TRUE while the bme280 IS MEASuring					
 
     void begin();               // init BMP280 with default parameters FORCED mode and max measuring 
     void begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p); // overloaded function init
     tp_stru readTP(void);   // read, calculate and return structure T, P
-
 };
 
-/*************************************************/
+//================================================
 //      class cl_BME280, inherits cl_BMP280
-/*************************************************/
+//================================================
 class cl_BME280: public cl_BMP280 {
 private:
     uint8_t clv_i2cAddr;
@@ -138,7 +144,7 @@ private:
         int16_t dig_H5;
         int8_t  dig_H6;
     } clv_cd;
-    void clf_readCalibCoef(void);                        // read calibration coeff
+    void clf_readCalibCoef(void);                        // read calibration coeff(data)
 
 public:
     cl_BME280() {           // default class constructor
@@ -149,7 +155,56 @@ public:
     void begin();               // init BMx280 with default parameters FORCED mode and max measuring 
     void begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h); // overloaded function init
     tph_stru readTPH(void); // read, calculate and return structure T, P, H
+};
 
+//================================================
+//      class cl_BME680, inherits cl_BMP280
+//================================================
+class cl_BME680: public cl_BMP280 {
+private:
+    uint8_t clv_i2cAddr;
+    uint8_t clv_codeChip;
+    struct {                                // clv_cd = structure of calibration data (coefficients)
+        uint16_t nc_T1;
+        int16_t  nc_T1;
+        int8_t   nc_T1;
+
+        uint16_t nc_P1;
+        int16_t  nc_P2;
+        int8_t   nc_P3;
+        int16_t  nc_P4;
+        int16_t  nc_P5;
+        int8_t   nc_P6;
+        int8_t   nc_P7;
+        int16_t  nc_P8;
+        int16_t  nc_P9;
+        uint8_t  nc_P10;
+
+        uint16_t nc_H1;
+        uint16_t nc_H2;
+        int8_t   nc_H3;
+        int8_t   nc_H4;
+        int8_t   nc_H5;
+        uint8_t  nc_H6;
+        int8_t   nc_H7;
+
+        int8_t   nc_gh1;
+        int16_t  nc_gh2;
+        int8_t   nc_gh3;
+    } clv_cd;
+    void clf_readCalibCoef(void);                        // read calibration coeff(data)
+
+public:
+    cl_BME680() {           // default class constructor
+        clv_i2cAddr  = 0x77;    //  default BME280 i2c address
+        clv_codeChip = 0;       //  default code chip 0 => not found.
+    }
+
+    void begin();               // init BMx280 with default parameters FORCED mode and max measuring 
+    void begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h); // overloaded function init
+    tphg_stru readTPHG(void); // read, calculate and return structure T, P, H
 };
 
 #endif
+
+//=================================================================================
