@@ -344,18 +344,18 @@ void cl_BME680::clf_readCalibCoef(void) {
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {    // reading 26 regs
 		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
 
-		clv_cd.nc_T2 = lv_regs[1] << 8 | lv_regs[0];	// fill struct
-		clv_cd.nc_T3 = lv_regs[2];
-		clv_cd.nc_P1 = lv_regs[5] << 8 | lv_regs[4];
-		clv_cd.nc_P2 = lv_regs[7] << 8 | lv_regs[6];
-		clv_cd.nc_P3 = lv_regs[8];
-		clv_cd.nc_P4 = lv_regs[11] << 8 | lv_regs[10];
-		clv_cd.nc_P5 = lv_regs[13] << 8 | lv_regs[12];
-		clv_cd.nc_P6 = lv_regs[15];
-		clv_cd.nc_P7 = lv_regs[14];
-		clv_cd.nc_P8 = lv_regs[19] << 8 | lv_regs[18];
-		clv_cd.nc_P9 = lv_regs[21] << 8 | lv_regs[20];
-		clv_cd.nc_P10 = lv_regs[22];
+		clv_cd.T2 = lv_regs[1] << 8 | lv_regs[0];	// fill struct
+		clv_cd.T3 = lv_regs[2];
+		clv_cd.P1 = lv_regs[5] << 8 | lv_regs[4];
+		clv_cd.P2 = lv_regs[7] << 8 | lv_regs[6];
+		clv_cd.P3 = lv_regs[8];
+		clv_cd.P4 = lv_regs[11] << 8 | lv_regs[10];
+		clv_cd.P5 = lv_regs[13] << 8 | lv_regs[12];
+		clv_cd.P6 = lv_regs[15];
+		clv_cd.P7 = lv_regs[14];
+		clv_cd.P8 = lv_regs[19] << 8 | lv_regs[18];
+		clv_cd.P9 = lv_regs[21] << 8 | lv_regs[20];
+		clv_cd.P10 = lv_regs[22];
 	}
 
 	lv_nregs = 14;
@@ -365,12 +365,19 @@ void cl_BME680::clf_readCalibCoef(void) {
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {   // reading
 		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
 
-		clv_cd.nc_H2 = ((lv_regs[0] ) << 12) | (lv_regs[1] >> 4);
-		clv_cd.nc_H2 = ((lv_regs[3] ) << 12) | (lv_regs[1] & 0x0F);
-		clv_cd.nc_H3 = lv_regs[2];
-		clv_cd.nc_H4 = ((int16_t)lv_regs[3] << 4) | (lv_regs[4] & 0x0F);
-		clv_cd.nc_H5 = ((int16_t)lv_regs[5] << 4) | ((lv_regs[4] & 0xF0) >> 4);
-		clv_cd.nc_H6 = lv_regs[6];
+		clv_cd.H2 = ((lv_regs[0] ) << 12) | (lv_regs[1] >> 4);
+		clv_cd.H2 = ((lv_regs[2] ) << 12) | (lv_regs[1] & 0x0F);
+		clv_cd.H3 = lv_regs[3];
+		clv_cd.H4 = lv_regs[4];
+		clv_cd.H5 = lv_regs[5];
+		clv_cd.H6 = lv_regs[6];
+		clv_cd.H7 = lv_regs[7];
+
+		clv_cd.T1 = lv_regs[9] << 8 | lv_regs[8];
+		
+		clv_cd.G2 = lv_regs[11] << 8 | lv_regs[10];
+		clv_cd.G1 = lv_regs[12];
+		clv_cd.G3 = lv_regs[13];
 	};
 }
 
@@ -378,19 +385,42 @@ void cl_BME680::clf_readCalibCoef(void) {
 //    public metods (funcs) for cl_BME280
 //============================================
 void cl_BME680::begin() {	// defaults are 16x; Normal mode; 0.5ms, no filter, I2C
-	begin(cd_FOR_MODE, cd_SB_500MS, cd_FIL_x16, cd_OS_x16, cd_OS_x16, cd_OS_x16); // Forse mode, sleep 500ms, filter x16, t p h x16
+	cl_BME680::begin(cd_FIL_x16, cd_OS_x16, cd_OS_x16, cd_OS_x16); // filter x16, oversampling TPH x16
 }
 
-void cl_BME680::begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h) {	// init bme280
+void cl_BME680::begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, int16_t lp_tagTemp) {	// init bme280
+// Read calibration coefficients (data) to clas private (local) variable clv_cd
 	cl_BME680::clf_readCalibCoef();
 
-	uint8_t lv_reg_0xF2 = osrs_h;
-	uint8_t lv_reg_0xF4 = (osrs_t<<5) | (osrs_p<<2) | mode;
-	uint8_t lv_reg_0xF5 = (t_sb << 5) | (filter << 2) | 0x00;
-	
-	cl_BME680::writeReg(0xF2, lv_reg_0xF2);
-	cl_BME680::writeReg(0xF4, lv_reg_0xF4);
-	cl_BME680::writeReg(0xF5, lv_reg_0xF5);
+/*	Select mode, oversampling and filtering = Step 1, 2, 3
+(osrs_h bit <2:0> regs 0x72, osrs_t bit <7:5> regs 0x74, osrs_p bit <4:2> regs 0x72, mode bit <1:0>)
+p.16 of Bosch Document rev.: 1.9, Date: February 2024, Document N: BST-BME680-DS001-09
+Technical reference code(s): 0 273 141 229; 0 273 141 312		*/
+	cl_BME680::writeReg(0x72, osrs_h);
+	cl_BME680::writeReg(0x74, ((osrs_t<<5) | (osrs_p<<2) | 0x00) );
+
+	//	Enable GAS conversion = Step 4 run_gas =1 (bit <4> reg 0x71) and 
+	//	Select index of heater set-point 0 = Step 5 nb_conv = 0 (bit 3:0 reg 0x71)
+	cl_BME680::writeReg(0x71, 0b00010000);
+
+	//	Define heater on Time Temp = Step 6. gas_wait_0 = 63 ms (bit 5:0 ms and bit 7:6 multiplier reg 0x6D)
+	cl_BME680::writeReg(0x6D, 0b00011111);
+
+	//	Set heater Temp = Step 7. Convert temperature to register code. Set res_heat_0 (bit <7:0> reg 0x63)
+	//	make function lf_calcResHeatX()
+	int32_t amb_temp = 20;
+	int32_t var1 = (((int32_t)amb_temp * clv_cd.G3) / 10) << 8;
+	int32_t var2 = (clv_cd.G1 + 784) * (((((clv_cd.G2 + 154009) * lv_tagTemp * 5) / 100) + 3276800) / 10);
+	int32_t var3 = var1 + (var2 >> 1);
+	int32_t var4 = (var3 / (res_heat_range + 4));
+	int8_t  res_heat_val   = cl_BME680::readReg(0x00);
+	uint8_t res_heat_range = (cl_BME680::readReg(0x02) >> 4) & 0x03;
+	int32_t var5 = (131 * res_heat_val) + 65536;
+	int32_t res_heat_x100 = (int32_t)(((var4 / var5) - 250) * 34);
+	uint8_t res_heat_x = (uint8_t)((res_heat_x100 + 50) / 100);
+	cl_BME680::writeReg(0x6D, res_heat_x);
+
+	//	Set mode to forced mode (let do measure TPHG => fn Do1Meas() ) = Step 8. Set mode = 0b01 (bit <1:0> reg 0x74)
 };    
 
 tphg_stru cl_BME680::readTPHG(void) {

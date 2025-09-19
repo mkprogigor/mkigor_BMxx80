@@ -32,7 +32,7 @@ Metods (functions) dont use symbol '_', only small or capital letters (ex.: only
 #include <Wire.h>
 
 #define cd_NOR_MODE  0x03
-#define cd_FOR_MODE  0x02
+#define cd_FOR_MODE  0x01
 
 #define cd_SB_500US  0x00
 #define cd_SB_10MS   0x06
@@ -165,32 +165,32 @@ private:
     uint8_t clv_i2cAddr;
     uint8_t clv_codeChip;
     struct {                                // clv_cd = structure of calibration data (coefficients)
-        uint16_t nc_T1;
-        int16_t  nc_T1;
-        int8_t   nc_T1;
+        uint16_t T1;
+        int16_t  T2;
+        int8_t   T3;
 
-        uint16_t nc_P1;
-        int16_t  nc_P2;
-        int8_t   nc_P3;
-        int16_t  nc_P4;
-        int16_t  nc_P5;
-        int8_t   nc_P6;
-        int8_t   nc_P7;
-        int16_t  nc_P8;
-        int16_t  nc_P9;
-        uint8_t  nc_P10;
+        uint16_t P1;
+        int16_t  P2;
+        int8_t   P3;
+        int16_t  P4;
+        int16_t  P5;
+        int8_t   P6;
+        int8_t   P7;
+        int16_t  P8;
+        int16_t  P9;
+        uint8_t  P10;
 
-        uint16_t nc_H1;
-        uint16_t nc_H2;
-        int8_t   nc_H3;
-        int8_t   nc_H4;
-        int8_t   nc_H5;
-        uint8_t  nc_H6;
-        int8_t   nc_H7;
+        uint16_t H1;
+        uint16_t H2;
+        int8_t   H3;
+        int8_t   H4;
+        int8_t   H5;
+        uint8_t  H6;
+        int8_t   H7;
 
-        int8_t   nc_gh1;
-        int16_t  nc_gh2;
-        int8_t   nc_gh3;
+        int8_t   G1;
+        int16_t  G2;
+        int8_t   G3;
     } clv_cd;
     void clf_readCalibCoef(void);                        // read calibration coeff(data)
 
@@ -201,7 +201,7 @@ public:
     }
 
     void begin();               // init BMx280 with default parameters FORCED mode and max measuring 
-    void begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h); // overloaded function init
+    void begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, int16_t lp_tagTemp = 350); // overloaded function init
     tphg_stru readTPHG(void); // read, calculate and return structure T, P, H
 };
 
