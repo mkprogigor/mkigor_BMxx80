@@ -408,23 +408,13 @@ void cl_BME680::do1Meas(void) {    // mode FORCED_MODE DO 1 Measuring
 bool cl_BME680::isMeas(void) {	// returns TRUE while bme680 is Measuring
 	lv_tregs1 =	cl_BME680::readReg(0x1D);					
 	lv_tregs2 =	cl_BME680::readReg(0x2B);
-//	print ststus bits
-	if (lv_tregs1 & 0x80 >>7) {
-		Serial.println("Status reg 0x1D bit <7> new_data_0 = 1");
-	}
-	if (lv_tregs1 & 0x40 >>6) {
-		Serial.println("Status reg 0x1D bit <6> gas_measuring = 1");
-	}
-	if (lv_tregs1 & 0x20 >>5) {
-		Serial.println("Status reg 0x1D bit <5> measuring = 1");
-	}
+//	print status bits
+	if (lv_tregs1 & 0x80 >>7) Serial.println("Status reg 0x1D bit <7> new_data_0 = 1");
+	if (lv_tregs1 & 0x40 >>6) Serial.println("Status reg 0x1D bit <6> gas_measuring = 1");
+	if (lv_tregs1 & 0x20 >>5) Serial.println("Status reg 0x1D bit <5> measuring = 1");
 
-	if (lv_tregs2 & 0x20 >>5) {
-		Serial.println("Status Gas reg 0x2B bit <5> gas_valid_r = 1");
-	}
-	if (lv_tregs2 & 0x10 >>4) {
-		Serial.println("Status Gas reg 0x2B bit <5> heat_stab_r = 1");
-	}
+	if (lv_tregs2 & 0x20 >>5) Serial.println("Status Gas reg 0x2B bit <5> gas_valid_r = 1");
+	if (lv_tregs2 & 0x10 >>4) Serial.println("Status Gas reg 0x2B bit <5> heat_stab_r = 1");
 	
 	return (bool)((clv_tregs1 & 0x20) >> 5);  	 // Status reg 0x1D bit <5> measuring = 1
 }
