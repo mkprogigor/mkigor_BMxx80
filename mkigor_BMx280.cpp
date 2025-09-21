@@ -414,7 +414,7 @@ bool cl_BME680::isMeas(void) {	// returns TRUE while bme680 is Measuring
 	if (lv_tregs1 & 0x20 >>5) Serial.println("Status reg 0x1D bit <5> measuring = 1");
 
 	if (lv_tregs2 & 0x20 >>5) Serial.println("Status Gas reg 0x2B bit <5> gas_valid_r = 1");
-	if (lv_tregs2 & 0x10 >>4) Serial.println("Status Gas reg 0x2B bit <5> heat_stab_r = 1");
+	if (lv_tregs2 & 0x10 >>4) Serial.println("Status Gas reg 0x2B bit <4> heat_stab_r = 1");
 	
 	return (bool)((clv_tregs1 & 0x20) >> 5);  	 // Status reg 0x1D bit <5> measuring = 1
 }
