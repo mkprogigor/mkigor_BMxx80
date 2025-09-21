@@ -381,9 +381,54 @@ void cl_BME680::clf_readCalibCoef(void) {
 	};
 }
 
+uint8_t cl_BME680::clf_calcResHeatX(int16_t lp_ambTemp, int16_t lp_tagTemp) {
+	int32_t lp_ambTemp = 20;
+	int32_t var1 = (((int32_t)lp_ambTemp * clv_cd.G3) / 10) << 8;
+	int32_t var2 = (clv_cd.G1 + 784) * (((((clv_cd.G2 + 154009) * lp_tagTemp * 5) / 100) + 3276800) / 10);
+	int32_t var3 = var1 + (var2 >> 1);
+	int32_t var4 = (var3 / (res_heat_range + 4));
+	int8_t  res_heat_val   = cl_BME680::readReg(0x00);
+	uint8_t res_heat_range = (cl_BME680::readReg(0x02) >> 4) & 0x03;
+	int32_t var5 = (131 * res_heat_val) + 65536;
+	int32_t res_heat_x100 = (int32_t)(((var4 / var5) - 250) * 34);
+	uint8_t res_heat_x = (uint8_t)((res_heat_x100 + 50) / 100);
+	return res_heat_x
+}
+
+
 //============================================
-//    public metods (funcs) for cl_BME280
+//    public metods (funcs) for cl_BME680
 //============================================
+void cl_BME680::do1Meas(void) {    // mode FORCED_MODE DO 1 Measuring
+	uint8_t lv_treg = cl_BME680::readReg(0x74);
+	lv_treg = (lv_treg & 0xFC) | 0x01;
+	cl_BME680::writeReg(0x74, lv_treg);
+}
+
+bool cl_BME680::isMeas(void) {	// returns TRUE while bme680 is Measuring
+	lv_tregs1 =	cl_BME680::readReg(0x1D);					
+	lv_tregs2 =	cl_BME680::readReg(0x2B);
+//	print ststus bits
+	if (lv_tregs1 & 0x80 >>7) {
+		Serial.println("Status reg 0x1D bit <7> new_data_0 = 1");
+	}
+	if (lv_tregs1 & 0x40 >>6) {
+		Serial.println("Status reg 0x1D bit <6> gas_measuring = 1");
+	}
+	if (lv_tregs1 & 0x20 >>5) {
+		Serial.println("Status reg 0x1D bit <5> measuring = 1");
+	}
+
+	if (lv_tregs2 & 0x20 >>5) {
+		Serial.println("Status Gas reg 0x2B bit <5> gas_valid_r = 1");
+	}
+	if (lv_tregs2 & 0x10 >>4) {
+		Serial.println("Status Gas reg 0x2B bit <5> heat_stab_r = 1");
+	}
+	
+	return (bool)((clv_tregs1 & 0x20) >> 5);  	 // Status reg 0x1D bit <5> measuring = 1
+}
+
 void cl_BME680::begin() {	// defaults are 16x; Normal mode; 0.5ms, no filter, I2C
 	cl_BME680::begin(cd_FIL_x16, cd_OS_x16, cd_OS_x16, cd_OS_x16); // filter x16, oversampling TPH x16
 }
@@ -407,20 +452,12 @@ Technical reference code(s): 0 273 141 229; 0 273 141 312		*/
 	cl_BME680::writeReg(0x6D, 0b00011111);
 
 	//	Set heater Temp = Step 7. Convert temperature to register code. Set res_heat_0 (bit <7:0> reg 0x63)
-	//	make function lf_calcResHeatX()
-	int32_t amb_temp = 20;
-	int32_t var1 = (((int32_t)amb_temp * clv_cd.G3) / 10) << 8;
-	int32_t var2 = (clv_cd.G1 + 784) * (((((clv_cd.G2 + 154009) * lv_tagTemp * 5) / 100) + 3276800) / 10);
-	int32_t var3 = var1 + (var2 >> 1);
-	int32_t var4 = (var3 / (res_heat_range + 4));
-	int8_t  res_heat_val   = cl_BME680::readReg(0x00);
-	uint8_t res_heat_range = (cl_BME680::readReg(0x02) >> 4) & 0x03;
-	int32_t var5 = (131 * res_heat_val) + 65536;
-	int32_t res_heat_x100 = (int32_t)(((var4 / var5) - 250) * 34);
-	uint8_t res_heat_x = (uint8_t)((res_heat_x100 + 50) / 100);
+	//	make function clf_calcResHeatX()
+	uint8_t res_heat_x = cl_BME680::clf_calcResHeatX(20, lp_tagTemp);
 	cl_BME680::writeReg(0x6D, res_heat_x);
 
 	//	Set mode to forced mode (let do measure TPHG => fn Do1Meas() ) = Step 8. Set mode = 0b01 (bit <1:0> reg 0x74)
+	//	fn cl_BME680::do1Meas(void)
 };    
 
 tphg_stru cl_BME680::readTPHG(void) {
