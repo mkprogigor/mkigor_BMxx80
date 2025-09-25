@@ -24,12 +24,11 @@ clf_*   -   Class private (Local) metod (Function);
 Metods (functions) dont use symbol '_', only small or capital letters (ex.: onlySmallOrCapitalLetters)
 ***********************************************************************************
 */
+#include <Arduino.h>
+#include <Wire.h>
 
 #ifndef mkigor_BMx280_h
 #define mkigor_BMx280_h
-
-#include <Arduino.h>
-#include <Wire.h>
 
 #define cd_NOR_MODE  0x03
 #define cd_FOR_MODE  0x01
@@ -55,6 +54,9 @@ Metods (functions) dont use symbol '_', only small or capital letters (ex.: only
 #define cd_FIL_x4  0x02
 #define cd_FIL_x8  0x03
 #define cd_FIL_x16 0x04
+#define cd_FIL_x32 0x05
+#define cd_FIL_x64 0x06
+#define cd_FIL_x128 0x07
 
 #define cd_BMP280  0x58
 #define cd_BME280  0x60
@@ -84,18 +86,18 @@ private:
     uint8_t clv_i2cAddr;
     uint8_t clv_codeChip;
     struct {                                // clv_cd = structure of calibration data (coefficients)
-        uint16_t  dig_T1;
-        int16_t   dig_T2;
-        int16_t   dig_T3;
-        uint16_t dig_P1;
-        int16_t  dig_P2;
-        int16_t  dig_P3;
-        int16_t  dig_P4;
-        int16_t  dig_P5;
-        int16_t  dig_P6;
-        int16_t  dig_P7;
-        int16_t  dig_P8;
-        int16_t  dig_P9;
+        uint16_t  T1;
+        int16_t   T2;
+        int16_t   T3;
+        uint16_t P1;
+        int16_t  P2;
+        int16_t  P3;
+        int16_t  P4;
+        int16_t  P5;
+        int16_t  P6;
+        int16_t  P7;
+        int16_t  P8;
+        int16_t  P9;
     } clv_cd;
     void clf_readCalibCoef(void);                        // read calibration coeff, datas
 
@@ -125,24 +127,24 @@ private:
     uint8_t clv_i2cAddr;
     uint8_t clv_codeChip;
     struct {                                // clv_cd = structure of calibration data (coefficients)
-        uint16_t  dig_T1;
-        int16_t   dig_T2;
-        int16_t   dig_T3;
-        uint16_t dig_P1;
-        int16_t  dig_P2;
-        int16_t  dig_P3;
-        int16_t  dig_P4;
-        int16_t  dig_P5;
-        int16_t  dig_P6;
-        int16_t  dig_P7;
-        int16_t  dig_P8;
-        int16_t  dig_P9;
-        uint8_t dig_H1;
-        int16_t dig_H2;
-        uint8_t dig_H3;
-        int16_t dig_H4;
-        int16_t dig_H5;
-        int8_t  dig_H6;
+        uint16_t  T1;
+        int16_t   T2;
+        int16_t   T3;
+        uint16_t P1;
+        int16_t  P2;
+        int16_t  P3;
+        int16_t  P4;
+        int16_t  P5;
+        int16_t  P6;
+        int16_t  P7;
+        int16_t  P8;
+        int16_t  P9;
+        uint8_t H1;
+        int16_t H2;
+        uint8_t H3;
+        int16_t H4;
+        int16_t H5;
+        int8_t  H6;
     } clv_cd;
     void clf_readCalibCoef(void);                        // read calibration coeff(data)
 
@@ -164,6 +166,7 @@ class cl_BME680: public cl_BMP280 {
 private:
     uint8_t clv_i2cAddr;
     uint8_t clv_codeChip;
+    int16_t clv_tagTemp;
     struct {                                // clv_cd = structure of calibration data (coefficients)
         uint16_t T1;
         int16_t  T2;
@@ -195,14 +198,17 @@ private:
     void clf_readCalibCoef(void);                        // read calibration coeff(data)
 
 public:
-    cl_BME680() {           // default class constructor
+    cl_BME680() {               // default class constructor
         clv_i2cAddr  = 0x77;    //  default BME280 i2c address
         clv_codeChip = 0;       //  default code chip 0 => not found.
+        clv_tagTemp  = 350;
     }
-
+    void initGasPointX(uint8_t fp_point = 0, uint16_t fp_tagTemp = 300, uint16_t fp_duration = 63, int16_t fp_ambTemp = 20);
+    void do1Meas(void);         // mode FORCED_MODE DO 1 Measuring}
+    bool isMeas(void);          // returns TRUE while bme680 is Measuring
     void begin();               // init BMx280 with default parameters FORCED mode and max measuring 
-    void begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, int16_t lp_tagTemp = 350); // overloaded function init
-    tphg_stru readTPHG(void); // read, calculate and return structure T, P, H
+    void begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h); // overloaded function init
+    tphg_stru readTPHG(void);   // read, calculate and return structure T, P, H
 };
 
 #endif

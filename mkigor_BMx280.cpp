@@ -23,8 +23,8 @@ clf_*   -   Class private (Local) metod (Function);
 
 Metods (functions) dont use symbol '_', only small or capital lett
 ************************************************************************************/
-
 #include <mkigor_BMx280.h>
+#define enDEBUG
 
 //============================================
 //	common public metod (function) for cl_BMP280 and cl_BME280 and cl_BME680
@@ -98,18 +98,18 @@ void cl_BMP280::clf_readCalibCoef(void) {
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {    // reading 26 regs
 		for (uint8_t i = 0; i < 25; i++) lv_regs[i] = Wire.read();
 
-		clv_cd.dig_T1 = lv_regs[1] << 8 | lv_regs[0];   // form struct
-		clv_cd.dig_T2 = lv_regs[3] << 8 | lv_regs[2];
-		clv_cd.dig_T3 = lv_regs[5] << 8 | lv_regs[4];
-		clv_cd.dig_P1 = lv_regs[7] << 8 | lv_regs[6];
-		clv_cd.dig_P2 = lv_regs[9] << 8 | lv_regs[8];
-		clv_cd.dig_P3 = lv_regs[11] << 8 | lv_regs[10];
-		clv_cd.dig_P4 = lv_regs[13] << 8 | lv_regs[12];
-		clv_cd.dig_P5 = lv_regs[15] << 8 | lv_regs[14];
-		clv_cd.dig_P6 = lv_regs[17] << 8 | lv_regs[16];
-		clv_cd.dig_P7 = lv_regs[19] << 8 | lv_regs[18];
-		clv_cd.dig_P8 = lv_regs[21] << 8 | lv_regs[20];
-		clv_cd.dig_P9 = lv_regs[23] << 8 | lv_regs[22];
+		clv_cd.T1 = lv_regs[1] << 8 | lv_regs[0];   // form struct
+		clv_cd.T2 = lv_regs[3] << 8 | lv_regs[2];
+		clv_cd.T3 = lv_regs[5] << 8 | lv_regs[4];
+		clv_cd.P1 = lv_regs[7] << 8 | lv_regs[6];
+		clv_cd.P2 = lv_regs[9] << 8 | lv_regs[8];
+		clv_cd.P3 = lv_regs[11] << 8 | lv_regs[10];
+		clv_cd.P4 = lv_regs[13] << 8 | lv_regs[12];
+		clv_cd.P5 = lv_regs[15] << 8 | lv_regs[14];
+		clv_cd.P6 = lv_regs[17] << 8 | lv_regs[16];
+		clv_cd.P7 = lv_regs[19] << 8 | lv_regs[18];
+		clv_cd.P8 = lv_regs[21] << 8 | lv_regs[20];
+		clv_cd.P9 = lv_regs[23] << 8 | lv_regs[22];
 	}
 }
 
@@ -131,9 +131,7 @@ void cl_BMP280::begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t
 };    
 
 tp_stru cl_BMP280::readTP(void) {
-#define BME280_S32_t int32_t		// make compatible code to BOSCH datasheet example
-#define BME280_U32_t uint32_t
-#define BME280_S64_t int64_t
+#define uint32_t uint32_t
 	tp_stru lv_tp = { 0, 0 };
 	int32_t  adc_T;
 	uint32_t adc_P;
@@ -150,40 +148,41 @@ tp_stru cl_BMP280::readTP(void) {
 	adc_P = ((lv_regs[0] << 16) | (lv_regs[1] << 8) | lv_regs[2]) >> 4;
 
 	// t_fine carries fine temperature as global value
-	BME280_S32_t lv_var1, lv_var2, t_fine;
+	int32_t lv_var1, lv_var2, t_fine;
 	if (adc_T == 0x800000) {
 		lv_tp.temp1 = 0;	// if the temperature module has been disabled return '0'
 	}
 	else {
 		// adc_T >>= 4;
-		lv_var1 = ((((adc_T >> 3) - ((BME280_S32_t)clv_cd.dig_T1 << 1))) * ((BME280_S32_t)clv_cd.dig_T2)) >> 11;
-		lv_var2 = (((((adc_T >> 4) - ((BME280_S32_t)clv_cd.dig_T1)) * ((adc_T >> 4) - ((BME280_S32_t)clv_cd.dig_T1))) >> 12) * ((BME280_S32_t)clv_cd.dig_T3)) >> 14;
+		lv_var1 = ((((adc_T >> 3) - ((int32_t)clv_cd.T1 << 1))) * ((int32_t)clv_cd.T2)) >> 11;
+		lv_var2 = (((((adc_T >> 4) - ((int32_t)clv_cd.T1)) * ((adc_T >> 4) - ((int32_t)clv_cd.T1))) >> 12) * 
+			((int32_t)clv_cd.T3)) >> 14;
 		t_fine = lv_var1 + lv_var2;
 		lv_tp.temp1 = ((float)((t_fine * 5 + 128) >> 8)) / 100;
 	}
 
-	BME280_S64_t var1, var2, p;
+	int64_t var1, var2, p;
 	if (adc_P == 0x800000) {
 		lv_tp.pres1 = 0;	// If the pressure module has been disabled return '0'
 	}
 	else {
 		// adc_P >>= 4;	// Start pressure converting
-		var1 = ((BME280_S64_t)t_fine) - 128000;
-		var2 = var1 * var1 * (BME280_S64_t)clv_cd.dig_P6;
-		var2 = var2 + ((var1 * (BME280_S64_t)clv_cd.dig_P5) << 17);
-		var2 = var2 + (((BME280_S64_t)clv_cd.dig_P4) << 35);
-		var1 = ((var1 * var1 * (BME280_S64_t)clv_cd.dig_P3) >> 8) + ((var1 * (BME280_S64_t)clv_cd.dig_P2) << 12);
-		var1 = (((((BME280_S64_t)1) << 47) + var1)) * ((BME280_S64_t)clv_cd.dig_P1) >> 33;
+		var1 = ((int64_t)t_fine) - 128000;
+		var2 = var1 * var1 * (int64_t)clv_cd.P6;
+		var2 = var2 + ((var1 * (int64_t)clv_cd.P5) << 17);
+		var2 = var2 + (((int64_t)clv_cd.P4) << 35);
+		var1 = ((var1 * var1 * (int64_t)clv_cd.P3) >> 8) + ((var1 * (int64_t)clv_cd.P2) << 12);
+		var1 = (((((int64_t)1) << 47) + var1)) * ((int64_t)clv_cd.P1) >> 33;
 		if (var1 == 0) {
 			lv_tp.pres1 = 0;     // avoid exception caused by division by zero
 		}
 		else {
 			p = 1048576 - adc_P;
 			p = (((p << 31) - var2) * 3125) / var1;
-			var1 = (((BME280_S64_t)clv_cd.dig_P9) * (p >> 13) * (p >> 13)) >> 25;
-			var2 = (((BME280_S64_t)clv_cd.dig_P8) * p) >> 19;
-			p = ((p + var1 + var2) >> 8) + (((BME280_S64_t)clv_cd.dig_P7) << 4);
-			lv_tp.pres1 = ((float)((BME280_U32_t)((p * 100) / 256))) / 100;
+			var1 = (((int64_t)clv_cd.P9) * (p >> 13) * (p >> 13)) >> 25;
+			var2 = (((int64_t)clv_cd.P8) * p) >> 19;
+			p = ((p + var1 + var2) >> 8) + (((int64_t)clv_cd.P7) << 4);
+			lv_tp.pres1 = ((float)p) / 256;
 		}
 	}
 
@@ -205,19 +204,19 @@ void cl_BME280::clf_readCalibCoef(void) {
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {    // reading 26 regs
 		for (uint8_t i = 0; i < 25; i++) lv_regs[i] = Wire.read();
 
-		clv_cd.dig_T1 = lv_regs[1] << 8 | lv_regs[0];   // form struct
-		clv_cd.dig_T2 = lv_regs[3] << 8 | lv_regs[2];
-		clv_cd.dig_T3 = lv_regs[5] << 8 | lv_regs[4];
-		clv_cd.dig_P1 = lv_regs[7] << 8 | lv_regs[6];
-		clv_cd.dig_P2 = lv_regs[9] << 8 | lv_regs[8];
-		clv_cd.dig_P3 = lv_regs[11] << 8 | lv_regs[10];
-		clv_cd.dig_P4 = lv_regs[13] << 8 | lv_regs[12];
-		clv_cd.dig_P5 = lv_regs[15] << 8 | lv_regs[14];
-		clv_cd.dig_P6 = lv_regs[17] << 8 | lv_regs[16];
-		clv_cd.dig_P7 = lv_regs[19] << 8 | lv_regs[18];
-		clv_cd.dig_P8 = lv_regs[21] << 8 | lv_regs[20];
-		clv_cd.dig_P9 = lv_regs[23] << 8 | lv_regs[22];
-		clv_cd.dig_H1 = lv_regs[25];
+		clv_cd.T1 = lv_regs[1] << 8 | lv_regs[0];   // form struct
+		clv_cd.T2 = lv_regs[3] << 8 | lv_regs[2];
+		clv_cd.T3 = lv_regs[5] << 8 | lv_regs[4];
+		clv_cd.P1 = lv_regs[7] << 8 | lv_regs[6];
+		clv_cd.P2 = lv_regs[9] << 8 | lv_regs[8];
+		clv_cd.P3 = lv_regs[11] << 8 | lv_regs[10];
+		clv_cd.P4 = lv_regs[13] << 8 | lv_regs[12];
+		clv_cd.P5 = lv_regs[15] << 8 | lv_regs[14];
+		clv_cd.P6 = lv_regs[17] << 8 | lv_regs[16];
+		clv_cd.P7 = lv_regs[19] << 8 | lv_regs[18];
+		clv_cd.P8 = lv_regs[21] << 8 | lv_regs[20];
+		clv_cd.P9 = lv_regs[23] << 8 | lv_regs[22];
+		clv_cd.H1 = lv_regs[25];
 	}
 
 	Wire.beginTransmission(clv_i2cAddr);   // second part request
@@ -225,11 +224,11 @@ void cl_BME280::clf_readCalibCoef(void) {
 	Wire.endTransmission();
 	if (Wire.requestFrom(clv_i2cAddr, 7) == 7) {   // reading
 		for (uint8_t i = 0; i < 7; i++) lv_regs[i] = Wire.read();
-		clv_cd.dig_H2 = lv_regs[1] << 8 | lv_regs[0]; // (Wire.read() | (Wire.read() << 8));
-		clv_cd.dig_H3 = lv_regs[2];
-		clv_cd.dig_H4 = ((int16_t)lv_regs[3] << 4) | (lv_regs[4] & 0x0F);
-		clv_cd.dig_H5 = ((int16_t)lv_regs[5] << 4) | ((lv_regs[4] & 0xF0) >> 4);
-		clv_cd.dig_H6 = lv_regs[6];
+		clv_cd.H2 = lv_regs[1] << 8 | lv_regs[0]; // (Wire.read() | (Wire.read() << 8));
+		clv_cd.H3 = lv_regs[2];
+		clv_cd.H4 = (((int16_t)lv_regs[3]) << 4) | (int16_t)(lv_regs[4] & 0x0F);
+		clv_cd.H5 = (((int16_t)lv_regs[5]) << 4) | (int16_t)((lv_regs[4] & 0xF0) >> 4);
+		clv_cd.H6 = lv_regs[6];
 	};
 }
 
@@ -253,9 +252,6 @@ void cl_BME280::begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t
 };    
 
 tph_stru cl_BME280::readTPH(void) {
-#define BME280_S32_t int32_t		// make compatible code to BOSCH datasheet example
-#define BME280_U32_t uint32_t
-#define BME280_S64_t int64_t
 	tph_stru lv_tph = { 0, 0, 0 };
 	int32_t  adc_T;
 	uint32_t adc_P;
@@ -274,57 +270,57 @@ tph_stru cl_BME280::readTPH(void) {
 	adc_H = (lv_regs[6] << 8) | lv_regs[7];
 
 	// t_fine carries fine temperature as global value
-	BME280_S32_t lv_var1, lv_var2, t_fine;
+	int32_t lv_var1, lv_var2, t_fine;
 	if (adc_T == 0x800000) {
 		lv_tph.temp1 = 0;	// if the temperature module has been disabled return '0'
 	}
 	else {
-		// adc_T >>= 4;
-		lv_var1 = ((((adc_T >> 3) - ((BME280_S32_t)clv_cd.dig_T1 << 1))) * ((BME280_S32_t)clv_cd.dig_T2)) >> 11;
-		lv_var2 = (((((adc_T >> 4) - ((BME280_S32_t)clv_cd.dig_T1)) * ((adc_T >> 4) - ((BME280_S32_t)clv_cd.dig_T1))) >> 12) * ((BME280_S32_t)clv_cd.dig_T3)) >> 14;
+		lv_var1 = ((((adc_T >> 3) - ((int32_t)clv_cd.T1 << 1))) * ((int32_t)clv_cd.T2)) >> 11;
+		lv_var2 = (((((adc_T >> 4) - ((int32_t)clv_cd.T1)) * ((adc_T >> 4) - ((int32_t)clv_cd.T1))) >> 12) * 
+			((int32_t)clv_cd.T3)) >> 14;
 		t_fine = lv_var1 + lv_var2;
 		lv_tph.temp1 = ((float)((t_fine * 5 + 128) >> 8)) / 100;
 	}
 
-	BME280_S64_t var1, var2, p;
+	int64_t var1, var2, p;
 	if (adc_P == 0x800000) {
 		lv_tph.pres1 = 0;	// If the pressure module has been disabled return '0'
 	}
 	else {
 		// adc_P >>= 4;	// Start pressure converting
-		var1 = ((BME280_S64_t)t_fine) - 128000;
-		var2 = var1 * var1 * (BME280_S64_t)clv_cd.dig_P6;
-		var2 = var2 + ((var1 * (BME280_S64_t)clv_cd.dig_P5) << 17);
-		var2 = var2 + (((BME280_S64_t)clv_cd.dig_P4) << 35);
-		var1 = ((var1 * var1 * (BME280_S64_t)clv_cd.dig_P3) >> 8) + ((var1 * (BME280_S64_t)clv_cd.dig_P2) << 12);
-		var1 = (((((BME280_S64_t)1) << 47) + var1)) * ((BME280_S64_t)clv_cd.dig_P1) >> 33;
+		var1 = ((int64_t)t_fine) - 128000;
+		var2 = var1 * var1 * (int64_t)clv_cd.P6;
+		var2 = var2 + ((var1 * (int64_t)clv_cd.P5) << 17);
+		var2 = var2 + (((int64_t)clv_cd.P4) << 35);
+		var1 = ((var1 * var1 * (int64_t)clv_cd.P3) >> 8) + ((var1 * (int64_t)clv_cd.P2) << 12);
+		var1 = (((((int64_t)1) << 47) + var1)) * ((int64_t)clv_cd.P1) >> 33;
 		if (var1 == 0) {
 			lv_tph.pres1 = 0;     // avoid exception caused by division by zero
 		}
 		else {
 			p = 1048576 - adc_P;
 			p = (((p << 31) - var2) * 3125) / var1;
-			var1 = (((BME280_S64_t)clv_cd.dig_P9) * (p >> 13) * (p >> 13)) >> 25;
-			var2 = (((BME280_S64_t)clv_cd.dig_P8) * p) >> 19;
-			p = ((p + var1 + var2) >> 8) + (((BME280_S64_t)clv_cd.dig_P7) << 4);
-			lv_tph.pres1 = ((float)((BME280_U32_t)((p * 100) / 256))) / 100;
+			var1 = (((int64_t)clv_cd.P9) * (p >> 13) * (p >> 13)) >> 25;
+			var2 = (((int64_t)clv_cd.P8) * p) >> 19;
+			p = ((p + var1 + var2) >> 8) + (((int64_t)clv_cd.P7) << 4);
+			lv_tph.pres1 = ((float)p) / 256;
 		}
 	}
 
-	BME280_S32_t v_x1_u32r;
+	int32_t v_x1_u32r;
 	if (adc_H == 0x8000) {
 		lv_tph.humi1 = 0;	// If the humidity module has been disabled return '0'
 	}
 	else {
-		v_x1_u32r = (t_fine - ((BME280_S32_t)76800));
-		v_x1_u32r = (((((adc_H << 14) - (((BME280_S32_t)clv_cd.dig_H4) << 20) - (((BME280_S32_t)clv_cd.dig_H5) *
-			v_x1_u32r)) + ((BME280_S32_t)16384)) >> 15) * (((((((v_x1_u32r *
-				((BME280_S32_t)clv_cd.dig_H6)) >> 10) * (((v_x1_u32r * ((BME280_S32_t)clv_cd.dig_H3)) >> 11) +
-					((BME280_S32_t)32768))) >> 10) + ((BME280_S32_t)2097152)) * ((BME280_S32_t)clv_cd.dig_H2) + 8192) >> 14));
-		v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) * ((BME280_S32_t)clv_cd.dig_H1)) >> 4));
+		v_x1_u32r = t_fine - ((int32_t)76800);
+		v_x1_u32r = (((((adc_H << 14) - (((int32_t)clv_cd.H4) << 20) - (((int32_t)clv_cd.H5) *
+			v_x1_u32r)) + ((int32_t)16384)) >> 15) * (((((((v_x1_u32r *
+				((int32_t)clv_cd.H6)) >> 10) * (((v_x1_u32r * ((int32_t)clv_cd.H3)) >> 11) +
+					((int32_t)32768))) >> 10) + ((int32_t)2097152)) * ((int32_t)clv_cd.H2) + 8192) >> 14));
+		v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) * ((int32_t)clv_cd.H1)) >> 4));
 		v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
 		v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
-		lv_tph.humi1 = ((float)((BME280_U32_t)(((v_x1_u32r >> 12) * 1000) / 1024))) / 1000;
+		lv_tph.humi1 = (float)((uint32_t)(v_x1_u32r >> 12)) / 1024;
 	}
 	return lv_tph;
 }
@@ -344,7 +340,10 @@ void cl_BME680::clf_readCalibCoef(void) {
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {    // reading 26 regs
 		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
 
-		clv_cd.T2 = lv_regs[1] << 8 | lv_regs[0];	// fill struct
+		// par_t1 0xE9 / 0xEA
+		// par_t2 0x8A / 0x8B
+		// par_t3 0x8C
+		clv_cd.T2 = ((int16_t)lv_regs[1] << 8) | lv_regs[0];	// fill struct
 		clv_cd.T3 = lv_regs[2];
 		clv_cd.P1 = lv_regs[5] << 8 | lv_regs[4];
 		clv_cd.P2 = lv_regs[7] << 8 | lv_regs[6];
@@ -356,6 +355,16 @@ void cl_BME680::clf_readCalibCoef(void) {
 		clv_cd.P8 = lv_regs[19] << 8 | lv_regs[18];
 		clv_cd.P9 = lv_regs[21] << 8 | lv_regs[20];
 		clv_cd.P10 = lv_regs[22];
+		// par_p1	0x8E / 0x8F
+		// par_p2	0x90 / 0x91
+		// par_p3	0x92
+		// par_p4	0x94 / 0x95
+		// par_p5	0x96 / 0x97
+		// par_p6	0x99
+		// par_p7	0x98
+		// par_p8	0x9C / 0x9D
+		// par_p9	0x9E / 0x9F
+		// par_p10	0xA0
 	}
 
 	lv_nregs = 14;
@@ -365,34 +374,36 @@ void cl_BME680::clf_readCalibCoef(void) {
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {   // reading
 		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
 
-		clv_cd.H2 = ((lv_regs[0] ) << 12) | (lv_regs[1] >> 4);
-		clv_cd.H2 = ((lv_regs[2] ) << 12) | (lv_regs[1] & 0x0F);
+		// par_h1 0xE2<3:0> / 0xE3
+		// par_h2 0xE2<7:4> / 0xE1
+		// par_h3 0xE4
+		// par_h4 0xE5
+		// par_h5 0xE6
+		// par_h6 0xE7
+		// par_h7 0xE8
+		clv_cd.H2 = ((uint16_t)lv_regs[0] << 4) | ((uint16_t)lv_regs[1] >> 4);
+		clv_cd.H1 = ((uint16_t)lv_regs[2] << 4) | (uint16_t)(lv_regs[1] & 0x0F);
 		clv_cd.H3 = lv_regs[3];
 		clv_cd.H4 = lv_regs[4];
 		clv_cd.H5 = lv_regs[5];
 		clv_cd.H6 = lv_regs[6];
 		clv_cd.H7 = lv_regs[7];
 
-		clv_cd.T1 = lv_regs[9] << 8 | lv_regs[8];
+		clv_cd.T1 = ((uint16_t)lv_regs[9] << 8) | lv_regs[8];
 		
-		clv_cd.G2 = lv_regs[11] << 8 | lv_regs[10];
+		// par_g1 0xED
+		// par_g2 0xEB/0xEC
+		// par_g3 0xEE
+		// res_heat_range 0x02 <5:4>
+		// res_heat_val 0x00
+		clv_cd.G2 = ((int16_t)lv_regs[11] << 8) | (uint16_t)lv_regs[10];
 		clv_cd.G1 = lv_regs[12];
 		clv_cd.G3 = lv_regs[13];
 	};
-}
-
-uint8_t cl_BME680::clf_calcResHeatX(int16_t lp_ambTemp, int16_t lp_tagTemp) {
-	int32_t lp_ambTemp = 20;
-	int32_t var1 = (((int32_t)lp_ambTemp * clv_cd.G3) / 10) << 8;
-	int32_t var2 = (clv_cd.G1 + 784) * (((((clv_cd.G2 + 154009) * lp_tagTemp * 5) / 100) + 3276800) / 10);
-	int32_t var3 = var1 + (var2 >> 1);
-	int32_t var4 = (var3 / (res_heat_range + 4));
-	int8_t  res_heat_val   = cl_BME680::readReg(0x00);
-	uint8_t res_heat_range = (cl_BME680::readReg(0x02) >> 4) & 0x03;
-	int32_t var5 = (131 * res_heat_val) + 65536;
-	int32_t res_heat_x100 = (int32_t)(((var4 / var5) - 250) * 34);
-	uint8_t res_heat_x = (uint8_t)((res_heat_x100 + 50) / 100);
-	return res_heat_x
+    printf("T1-T3  = %d %d %d \n", clv_cd.T1, clv_cd.T2, clv_cd.T3);
+    printf("P1-p10 = %d %d %d %d %d %d %d %d %d %d \n", clv_cd.P1, clv_cd.P2, clv_cd.P3, clv_cd.P4, clv_cd.P5, clv_cd.P6, clv_cd.P7, clv_cd.P8, clv_cd.P9, clv_cd.P10);
+    printf("H1-H7  = %d %d %d %d %d %d %d \n", clv_cd.H1, clv_cd.H2, clv_cd.H3, clv_cd.H4, clv_cd.H5, clv_cd.H6, clv_cd.H7);
+    printf("G1-G3  = %d %d %d \n", clv_cd.G1, clv_cd.G2, clv_cd.G3);
 }
 
 
@@ -400,131 +411,234 @@ uint8_t cl_BME680::clf_calcResHeatX(int16_t lp_ambTemp, int16_t lp_tagTemp) {
 //    public metods (funcs) for cl_BME680
 //============================================
 void cl_BME680::do1Meas(void) {    // mode FORCED_MODE DO 1 Measuring
-	uint8_t lv_treg = cl_BME680::readReg(0x74);
-	lv_treg = (lv_treg & 0xFC) | 0x01;
-	cl_BME680::writeReg(0x74, lv_treg);
+	cl_BME680::writeReg(0x74, cl_BME680::readReg(0x74) | 0X01);
 }
 
 bool cl_BME680::isMeas(void) {	// returns TRUE while bme680 is Measuring
-	lv_tregs1 =	cl_BME680::readReg(0x1D);					
-	lv_tregs2 =	cl_BME680::readReg(0x2B);
-//	print status bits
-	if (lv_tregs1 & 0x80 >>7) Serial.println("Status reg 0x1D bit <7> new_data_0 = 1");
-	if (lv_tregs1 & 0x40 >>6) Serial.println("Status reg 0x1D bit <6> gas_measuring = 1");
-	if (lv_tregs1 & 0x20 >>5) Serial.println("Status reg 0x1D bit <5> measuring = 1");
-
-	if (lv_tregs2 & 0x20 >>5) Serial.println("Status Gas reg 0x2B bit <5> gas_valid_r = 1");
-	if (lv_tregs2 & 0x10 >>4) Serial.println("Status Gas reg 0x2B bit <4> heat_stab_r = 1");
-	
-	return (bool)((clv_tregs1 & 0x20) >> 5);  	 // Status reg 0x1D bit <5> measuring = 1
+	// Status reg 0x1D bit <6> gas measuring = 1 or bit <5> measuring = 1
+	return (bool)((cl_BME680::readReg(0x1D) & 0x60));
 }
 
 void cl_BME680::begin() {	// defaults are 16x; Normal mode; 0.5ms, no filter, I2C
 	cl_BME680::begin(cd_FIL_x16, cd_OS_x16, cd_OS_x16, cd_OS_x16); // filter x16, oversampling TPH x16
 }
 
-void cl_BME680::begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, int16_t lp_tagTemp) {	// init bme280
-// Read calibration coefficients (data) to clas private (local) variable clv_cd
+void cl_BME680::begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h) {
+	// Read calibration coefficients (data) to clas private (local) variable clv_cd
 	cl_BME680::clf_readCalibCoef();
-
 /*	Select mode, oversampling and filtering = Step 1, 2, 3
 (osrs_h bit <2:0> regs 0x72, osrs_t bit <7:5> regs 0x74, osrs_p bit <4:2> regs 0x72, mode bit <1:0>)
 p.16 of Bosch Document rev.: 1.9, Date: February 2024, Document N: BST-BME680-DS001-09
 Technical reference code(s): 0 273 141 229; 0 273 141 312		*/
 	cl_BME680::writeReg(0x72, osrs_h);
 	cl_BME680::writeReg(0x74, ((osrs_t<<5) | (osrs_p<<2) | 0x00) );
-
-	//	Enable GAS conversion = Step 4 run_gas =1 (bit <4> reg 0x71) and 
-	//	Select index of heater set-point 0 = Step 5 nb_conv = 0 (bit 3:0 reg 0x71)
-	cl_BME680::writeReg(0x71, 0b00010000);
-
-	//	Define heater on Time Temp = Step 6. gas_wait_0 = 63 ms (bit 5:0 ms and bit 7:6 multiplier reg 0x6D)
-	cl_BME680::writeReg(0x6D, 0b00011111);
-
-	//	Set heater Temp = Step 7. Convert temperature to register code. Set res_heat_0 (bit <7:0> reg 0x63)
-	//	make function clf_calcResHeatX()
-	uint8_t res_heat_x = cl_BME680::clf_calcResHeatX(20, lp_tagTemp);
-	cl_BME680::writeReg(0x6D, res_heat_x);
-
-	//	Set mode to forced mode (let do measure TPHG => fn Do1Meas() ) = Step 8. Set mode = 0b01 (bit <1:0> reg 0x74)
-	//	fn cl_BME680::do1Meas(void)
 };    
 
+void cl_BME680::initGasPointX(uint8_t lp_setPoint, uint16_t lp_tagTemp, uint16_t lp_duration, int16_t lp_ambTemp) {
+	//  Up to 10 different hot plate temperature set points can be configured by setting the registers res_heat_x<7:0>,
+	//  where x = 0…9. The internal heater control loop operates on the resistance of the heater structure.
+	//  Hence, the user first needs to convert the target temperature into a device specific target resistance
+	//  before writing the resulting register code into the sensor memory map.
+
+	//	Enable GAS conversion = Step 4. run_gas =1 (bit <4> reg 0x71) and 
+	//	Select index of heater set-point 0 = Step 5. nb_conv = 0 (bit 3:0 reg 0x71)
+	if (lp_setPoint > 9) lp_setPoint = 9;
+	cl_BME680::writeReg(0x71, (0x10 | lp_setPoint) );
+
+	//	Define heater duration Temp = Step 6. gas_wait_0 = 63 ms (bit 5:0 ms and bit 7:6 multiplier reg 0x64-0x6D)
+	if (lp_duration >= 0x0FC0) {
+		lp_duration = 0x00FF;
+	}
+	else {
+		uint8_t lv_mult = 0;
+		while (lp_duration > 63) {
+			lv_mult++;
+			lp_duration = lp_duration >> 2;
+		}
+		lp_duration = lp_duration | (lv_mult << 6);
+	}
+	cl_BME680::writeReg(0x64 + lp_setPoint, (uint8_t)lp_duration);
+
+	//	Set heater Temp = Step 7. Convert temperature to register cspecific val. Set res_heat_0 (bit <7:0> reg 0x5A-0x63)
+	//	make function clf_calcResHeatX()
+
+	// •	par_g1, par_g2, and par_g3 are calibration parameters,
+	// •	target_temp is the target heater temperature in degree Celsius,
+	// •	amb_temp is the ambient temperature (hardcoded or read from temperature sensor),
+	// •	var5 is the target heater resistance in Ohm,
+	// •	res_heat_x is the decimal value that needs to be stored in register,
+	// 			where 'x' corresponds to the temperature profilenumber between 0 and 9,
+	// •	res_heat_range is the heater range stored in register address 0x02 <5:4>, and
+	// •	res_heat_val is the heater resistance correction factor stored in register address 0x00 
+	// 			(signed, value from -128 to 127).
+	int32_t var1 = (((int32_t)lp_ambTemp * clv_cd.G3) / 10) << 8;
+	int32_t var2 = (clv_cd.G1 + 784) * (((((clv_cd.G2 + 154009) * lp_tagTemp * 5) / 100) + 3276800) / 10);
+	int32_t var3 = var1 + (var2 >> 1);
+	int8_t  res_heat_val   = cl_BME680::readReg(0x00);
+	uint8_t res_heat_range = (cl_BME680::readReg(0x02) >> 4) & 0x03;
+	int32_t var4 = (var3 / (res_heat_range + 4));
+	int32_t var5 = (131 * res_heat_val) + 65536;
+	int32_t res_heat_x100 = (int32_t)(((var4 / var5) - 250) * 34);
+	uint8_t res_heat_0 = (uint8_t)((res_heat_x100 + 50) / 100);
+	cl_BME680::writeReg(0x5A + lp_setPoint, res_heat_0);
+}
+
 tphg_stru cl_BME680::readTPHG(void) {
-#define BME280_S32_t int32_t		// make compatible code to BOSCH datasheet example
-#define BME280_U32_t uint32_t
-#define BME280_S64_t int64_t
 	tphg_stru lv_tphg = { 0, 0, 0, 0 };
-	int32_t  adc_T;
-	uint32_t adc_P;
-	int32_t  adc_H;
-	uint32_t adc_G;
-	uint8_t lv_nregs = 8;
+	uint32_t  adc_T;
+	uint32_t  adc_P;
+	uint32_t  adc_H;
+	uint32_t  adc_G;
+											//	Construct normal value from raw data
+	uint8_t lv_nregs = 8;					//	read 14 bytes raw data form 0x1F to 0x1B at once
 	uint8_t lv_regs[lv_nregs];
-
-	Wire.beginTransmission(clv_i2cAddr);   // addr of first byte raw data Humi
-	Wire.write(0xF7);
+	Wire.beginTransmission(clv_i2cAddr);	// addr of start byte raw data (adc) P T H
+	Wire.write(0x1F);
 	if (Wire.endTransmission() != 0) return lv_tphg;
-
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs)
 		for (uint8_t i = 0; i < 8; i++) lv_regs[i] = Wire.read();
-	adc_T = ((lv_regs[3] << 16) | (lv_regs[4] << 8) | lv_regs[5]) >> 4;
-	adc_P = ((lv_regs[0] << 16) | (lv_regs[1] << 8) | lv_regs[2]) >> 4;
-	adc_H = (lv_regs[6] << 8) | lv_regs[7];
+	adc_P = 0 | (lv_regs[0] << 12) | (lv_regs[1] << 4) | (lv_regs[2] >> 4);
+	adc_T = 0 | (lv_regs[3] << 12) | (lv_regs[4] << 4) | (lv_regs[5] >> 4);
+	adc_H = 0 | (lv_regs[6] << 8)  | lv_regs[7];
 
-	// t_fine carries fine temperature as global value
-	BME280_S32_t lv_var1, lv_var2, t_fine;
+	uint8_t msb = cl_BME680::readReg(0x2A);
+	uint8_t lsb = cl_BME680::readReg(0x2B);
+	Serial.println(msb, HEX);
+	Serial.println(lsb, HEX);
+	adc_G = (uint32_t)0 | ((uint32_t)msb << 2)  | (uint32_t)(lsb >> 6);
+	Serial.println(adc_G, HEX);
+
+	uint8_t range_switching_error = cl_BME680::readReg(0x04);
+	uint8_t gas_range =	lv_regs[13] & 0x0F;
+
+	// t_fine carries fine temperature that will use in future calc in this fn
+	// Calc T, where
+	// • par_t1, par_t2 and par_t3 are calibration parameters,
+	// • temp_adc is the raw temperature output data,
+	// • temp_comp is the compensated temperature output data in degrees Celsius.
+	int32_t lv_var1, lv_var2, lv_var3, t_fine, temp_comp;
 	if (adc_T == 0x800000) {
 		lv_tphg.temp1 = 0;	// if the temperature module has been disabled return '0'
 	}
 	else {
-		// adc_T >>= 4;
-		lv_var1 = ((((adc_T >> 3) - ((BME280_S32_t)clv_cd.dig_T1 << 1))) * ((BME280_S32_t)clv_cd.dig_T2)) >> 11;
-		lv_var2 = (((((adc_T >> 4) - ((BME280_S32_t)clv_cd.dig_T1)) * ((adc_T >> 4) - ((BME280_S32_t)clv_cd.dig_T1))) >> 12) * ((BME280_S32_t)clv_cd.dig_T3)) >> 14;
-		t_fine = lv_var1 + lv_var2;
-		lv_tphg.temp1 = ((float)((t_fine * 5 + 128) >> 8)) / 100;
+		lv_var1 = ((int32_t)adc_T >> 3) - ((int32_t)clv_cd.T1 << 1);
+		lv_var2 = (lv_var1 * (int32_t)clv_cd.T2) >> 11;
+		lv_var3 = ((((lv_var1 >> 1) * (lv_var1 >> 1)) >> 12) * ((int32_t)clv_cd.T3 << 4)) >> 14;
+		t_fine = lv_var2 + lv_var3;
+		temp_comp = ((t_fine * 5) + 128) >> 8;
+		lv_tphg.temp1 = ((float)temp_comp) / 100;		//	???
 	}
 
-	BME280_S64_t var1, var2, p;
+#ifdef enDEBUG
+	printf("Raw data: adcT=%d, adcP=%d, adcH=%d, adcG=%d, t_fine=%d\n", adc_T, adc_P, adc_H, adc_G, t_fine);
+#endif
+
+// Calc P, where
+	// • par_p1, par_p2, …, par_p10 are calibration parameters,
+	// • press_adc is the raw pressure output data,
+	// • press_comp is the compensated pressure output data in Pascal.
+	uint32_t press_comp;
 	if (adc_P == 0x800000) {
 		lv_tphg.pres1 = 0;	// If the pressure module has been disabled return '0'
 	}
 	else {
-		// adc_P >>= 4;	// Start pressure converting
-		var1 = ((BME280_S64_t)t_fine) - 128000;
-		var2 = var1 * var1 * (BME280_S64_t)clv_cd.dig_P6;
-		var2 = var2 + ((var1 * (BME280_S64_t)clv_cd.dig_P5) << 17);
-		var2 = var2 + (((BME280_S64_t)clv_cd.dig_P4) << 35);
-		var1 = ((var1 * var1 * (BME280_S64_t)clv_cd.dig_P3) >> 8) + ((var1 * (BME280_S64_t)clv_cd.dig_P2) << 12);
-		var1 = (((((BME280_S64_t)1) << 47) + var1)) * ((BME280_S64_t)clv_cd.dig_P1) >> 33;
-		if (var1 == 0) {
-			lv_tphg.pres1 = 0;     // avoid exception caused by division by zero
-		}
-		else {
-			p = 1048576 - adc_P;
-			p = (((p << 31) - var2) * 3125) / var1;
-			var1 = (((BME280_S64_t)clv_cd.dig_P9) * (p >> 13) * (p >> 13)) >> 25;
-			var2 = (((BME280_S64_t)clv_cd.dig_P8) * p) >> 19;
-			p = ((p + var1 + var2) >> 8) + (((BME280_S64_t)clv_cd.dig_P7) << 4);
-			lv_tphg.pres1 = ((float)((BME280_U32_t)((p * 100) / 256))) / 100;
-		}
+		lv_var1 = ((int32_t)t_fine >> 1) - 64000;
+		lv_var2 = ((((lv_var1 >> 2) * (lv_var1 >> 2)) >> 11) * (int32_t)clv_cd.P6) >> 2;
+		lv_var2 = lv_var2 + ((lv_var1 * (int32_t)clv_cd.P5) << 1);
+		lv_var2 = (lv_var2 >> 2) + ((int32_t)clv_cd.P4 << 16);
+		lv_var1 = (((((lv_var1 >> 2) * (lv_var1 >> 2)) >> 13) * ((int32_t)clv_cd.P3 << 5)) >> 3) + (((int32_t)clv_cd.P2 * lv_var1) >> 1);
+		lv_var1 = lv_var1 >> 18;
+		lv_var1 = ((32768 + lv_var1) * (int32_t)clv_cd.P1) >> 15;
+		press_comp = 1048576 - adc_P;
+		press_comp = (uint32_t)((press_comp - (lv_var2 >> 12)) * ((uint32_t)3125));
+		if (press_comp >= (1 << 30))
+			press_comp = ((press_comp / (uint32_t)lv_var1) << 1);
+		else
+			press_comp = ((press_comp << 1) / (uint32_t)lv_var1);
+		lv_var1 = ((int32_t)clv_cd.P9 * (int32_t)(((press_comp >> 3) * (press_comp >> 3)) >> 13)) >> 12;
+		lv_var2 = ((int32_t)(press_comp >> 2) * (int32_t)clv_cd.P8) >> 13;
+		lv_var3 = ((int32_t)(press_comp >> 8) * (int32_t)(press_comp >> 8) * (int32_t)(press_comp >> 8) * (int32_t)clv_cd.P10) >> 17;
+		press_comp = (int32_t)(press_comp) + ((lv_var1 + lv_var2 + lv_var3 + ((int32_t)clv_cd.P7 << 7)) >> 4);
+		lv_tphg.pres1 = (float)press_comp;
 	}
 
-	BME280_S32_t v_x1_u32r;
+	// Calc H, where
+	// • par_h1, par_h2, …, par_h7 are calibration parameters,
+	// • hum_adc is the raw humidity output data,
+	// • hum_comp is the compensated humidity output data in percent.
+	int32_t lv_var4, lv_var5, lv_var6, hum_comp;
 	if (adc_H == 0x8000) {
 		lv_tphg.humi1 = 0;	// If the humidity module has been disabled return '0'
 	}
 	else {
-		v_x1_u32r = (t_fine - ((BME280_S32_t)76800));
-		v_x1_u32r = (((((adc_H << 14) - (((BME280_S32_t)clv_cd.dig_H4) << 20) - (((BME280_S32_t)clv_cd.dig_H5) *
-			v_x1_u32r)) + ((BME280_S32_t)16384)) >> 15) * (((((((v_x1_u32r *
-				((BME280_S32_t)clv_cd.dig_H6)) >> 10) * (((v_x1_u32r * ((BME280_S32_t)clv_cd.dig_H3)) >> 11) +
-					((BME280_S32_t)32768))) >> 10) + ((BME280_S32_t)2097152)) * ((BME280_S32_t)clv_cd.dig_H2) + 8192) >> 14));
-		v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) * ((BME280_S32_t)clv_cd.dig_H1)) >> 4));
-		v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
-		v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
-		lv_tphg.humi1 = ((float)((BME280_U32_t)(((v_x1_u32r >> 12) * 1000) / 1024))) / 1000;
+		int32_t temp_scaled = (int32_t)temp_comp;
+		lv_var1 = (int32_t)adc_H - (int32_t)((int32_t)clv_cd.H1 << 4) - 
+		(((temp_scaled * (int32_t)clv_cd.H3) / ((int32_t)100)) >> 1);
+		lv_var2 = ((int32_t)clv_cd.H2 * (((temp_scaled *
+			(int32_t)clv_cd.H4) / ((int32_t)100)) +
+			(((temp_scaled * ((temp_scaled * (int32_t)clv_cd.H5) /
+				((int32_t)100))) >> 6) / ((int32_t)100)) + ((int32_t)(1 << 14)))) >> 10;
+		lv_var3 = lv_var1 * lv_var2;
+		lv_var4 = (((int32_t)clv_cd.H6 << 7) +
+			((temp_scaled * (int32_t)clv_cd.H7) / ((int32_t)100))) >> 4;
+		lv_var5 = ((lv_var3 >> 14) * (lv_var3 >> 14)) >> 10;
+		lv_var6 = (lv_var4 * lv_var5) >> 1;
+		hum_comp = (((lv_var3 + lv_var6) >> 10) * ((int32_t)1000)) >> 12;
+		lv_tphg.humi1 = ((float)hum_comp) / 1024;	// ???
 	}
+
+	// Calc Gas resistance,
+	// Readout of gas sensor resistance ADC value and calculation of gas sensor resistance consists of 3 steps
+	// 1. Read gas ADC value (gas_adc) and gas ADC range (gas_range) (see Section 5.3.4)
+	// 2. Read range switching error from register address 0x04 <7:4> (signed 4 bit)
+	// 3. Convert ADC value into gas sensor resistance in ohm
+
+	if (adc_G == 0x8000) {
+		lv_tphg.gasr1 = 0;	// If the humidity module has been disabled return '0'
+	}
+	else {
+		//	Set heater Temp = Step 7. Convert temperature to register cspecific val.
+		//	Set res_heat_0 (bit <7:0> reg 0x5A-0x63)
+		//	function clf_calcResHeatX()
+		// uint8_t res_heat_0 = cl_BME680::clf_calcResHeatX(20, lp_tagTemp);
+		// cl_BME680::writeReg(0x5A, res_heat_0);
+
+		// , where
+		// •	gas_adc is the raw gas sensor resistance output data (i.e. ADC value),
+		// •	gas_range is the ADC range of the measured gas sensor resistance,
+		// •	range_switching_error is a calibration parameter,
+		// •	gas_res is the compensated gas sensor resistance output data in Ohms.
+		// Variable name			Register address (LSB / MSB)
+		// gas_adc					0x2B<7:6>=<1:0> / 0x2A<7:0>=<9:2>
+		// gas_range				0x2B<3:0>
+		// range_switching_error	0x04
+
+		int32_t const_array1_int[16];		int32_t const_array2_int[16];
+		const_array1_int[0] = 2147483647;	const_array2_int[0] = 4096000000;
+		const_array1_int[1] = 2147483647;	const_array2_int[0] = 2048000000;
+		const_array1_int[2] = 2147483647;	const_array2_int[0] = 1024000000;
+		const_array1_int[3] = 2147483647;	const_array2_int[0] = 512000000;
+		const_array1_int[4] = 2147483647;	const_array2_int[0] = 255744255;
+		const_array1_int[5] = 2126008810;	const_array2_int[0] = 127110228;
+		const_array1_int[6] = 2147483647;	const_array2_int[0] = 64000000;
+		const_array1_int[7] = 2130303777;	const_array2_int[0] = 32258064;
+		const_array1_int[8] = 2147483647;	const_array2_int[0] = 16016016;
+		const_array1_int[9] = 2147483647;	const_array2_int[0] = 8000000;
+		const_array1_int[10] = 2143188679;	const_array2_int[0] = 4000000;
+		const_array1_int[11] = 2136746228;	const_array2_int[0] = 2000000;
+		const_array1_int[12] = 2147483647;	const_array2_int[0] = 1000000;
+		const_array1_int[13] = 2126008810;	const_array2_int[0] = 500000;
+		const_array1_int[14] = 2147483647;	const_array2_int[0] = 250000;
+		const_array1_int[15] = 2147483647;	const_array2_int[0] = 125000;
+
+		int64_t var1 = (int64_t)(((1340 + (5 * (int64_t)range_switching_error)) *
+			((int64_t)const_array1_int[gas_range])) >> 16);
+		int64_t var2 = (int64_t)(adc_G << 15) - (int64_t)(1 << 24) + var1;
+		int32_t gas_res = (int32_t)((((int64_t)(const_array2_int[gas_range] *
+			(int64_t)var1) >> 9) + (var2 >> 1)) / var2);
+		lv_tphg.gasr1 = (float)gas_res;
+	}
+
 	return lv_tphg;
 }
 
