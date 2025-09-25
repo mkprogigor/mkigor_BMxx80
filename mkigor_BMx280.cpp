@@ -503,10 +503,7 @@ tphg_stru cl_BME680::readTPHG(void) {
 
 	uint8_t msb = cl_BME680::readReg(0x2A);
 	uint8_t lsb = cl_BME680::readReg(0x2B);
-	Serial.println(msb, HEX);
-	Serial.println(lsb, HEX);
 	adc_G = (uint32_t)0 | ((uint32_t)msb << 2)  | (uint32_t)(lsb >> 6);
-	Serial.println(adc_G, HEX);
 
 	uint8_t range_switching_error = cl_BME680::readReg(0x04);
 	uint8_t gas_range =	lv_regs[13] & 0x0F;
