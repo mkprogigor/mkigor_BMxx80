@@ -438,8 +438,8 @@ Technical reference code(s): 0 273 141 229; 0 273 141 312		*/
 };    
 
 void cl_BME680::initGasPointX(uint8_t lp_setPoint, uint16_t lp_tagTemp, uint16_t lp_duration, int16_t lp_ambTemp) {
-	//  Up to 10 different hot plate temperature set points can be configured by setting the registers res_heat_x<7:0>,
-	//  where x = 0…9. The internal heater control loop operates on the resistance of the heater structure.
+	//  Up to 10 different hot plate temperature set points can be configured by setting the registers res_heat_X and gas_wait_X,
+	//  where X = 0…9. The internal heater control loop operates on the resistance of the heater structure.
 	//  Hence, the user first needs to convert the target temperature into a device specific target resistance
 	//  before writing the resulting register code into the sensor memory map.
 
@@ -448,7 +448,7 @@ void cl_BME680::initGasPointX(uint8_t lp_setPoint, uint16_t lp_tagTemp, uint16_t
 	if (lp_setPoint > 9) lp_setPoint = 9;
 	cl_BME680::writeReg(0x71, (0x10 | lp_setPoint) );
 
-	//	Step 6 - Define heater duration Temp in ms, reg gas_wait_0-9 
+	//	Step 6 - Define heater duration Temp in ms, reg gas_wait_X, where X = 0…9. 
 	//	registers address 0x64-0x6D, bit <5:0> ms and bit <7:6> is multiplier
 	if (lp_duration >= 0x0FC0) {
 		lp_duration = 0x00FF;
