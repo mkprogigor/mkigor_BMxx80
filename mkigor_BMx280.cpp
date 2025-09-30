@@ -340,10 +340,8 @@ void cl_BME680::clf_readCalibCoef(void) {
 	if (Wire.endTransmission() != 0) return;
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {    // reading 26 regs
 		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
-
-		// par_t1 0xE9 / 0xEA
-		// par_t2 0x8A / 0x8B
-		// par_t3 0x8C
+// T1 0xE9/0xEA, T2 0x8A/0x8B, T3 0x8C
+// P1 0x8E/0x8F, P2	0x90/0x91, P3 0x92, P4 0x94/0x95, P5 0x96/0x97, P6 0x99, P7 0x98, P8 0x9C/0x9D, P9	0x9E/0x9F, P10	0xA0
 		clv_cd.T2 = ((int16_t)lv_regs[1] << 8) | lv_regs[0];	// fill struct
 		clv_cd.T3 = lv_regs[2];
 		clv_cd.P1 = lv_regs[5] << 8 | lv_regs[4];
@@ -356,16 +354,6 @@ void cl_BME680::clf_readCalibCoef(void) {
 		clv_cd.P8 = lv_regs[19] << 8 | lv_regs[18];
 		clv_cd.P9 = lv_regs[21] << 8 | lv_regs[20];
 		clv_cd.P10 = lv_regs[22];
-		// par_p1	0x8E / 0x8F
-		// par_p2	0x90 / 0x91
-		// par_p3	0x92
-		// par_p4	0x94 / 0x95
-		// par_p5	0x96 / 0x97
-		// par_p6	0x99
-		// par_p7	0x98
-		// par_p8	0x9C / 0x9D
-		// par_p9	0x9E / 0x9F
-		// par_p10	0xA0
 	}
 
 	lv_nregs = 14;
@@ -374,14 +362,7 @@ void cl_BME680::clf_readCalibCoef(void) {
 	Wire.endTransmission();
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {   // reading
 		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
-
-		// par_h1 0xE2<3:0> / 0xE3
-		// par_h2 0xE2<7:4> / 0xE1
-		// par_h3 0xE4
-		// par_h4 0xE5
-		// par_h5 0xE6
-		// par_h6 0xE7
-		// par_h7 0xE8
+// H1 0xE2<3:0>/0xE3, H2 0xE2<7:4>/0xE1, H3 0xE4, H4 0xE5, H5 0xE6, H6 0xE7, H7 0xE8
 		clv_cd.H2 = ((uint16_t)lv_regs[0] << 4) | ((uint16_t)lv_regs[1] >> 4);
 		clv_cd.H1 = ((uint16_t)lv_regs[2] << 4) | (uint16_t)(lv_regs[1] & 0x0F);
 		clv_cd.H3 = lv_regs[3];
@@ -389,14 +370,8 @@ void cl_BME680::clf_readCalibCoef(void) {
 		clv_cd.H5 = lv_regs[5];
 		clv_cd.H6 = lv_regs[6];
 		clv_cd.H7 = lv_regs[7];
-
 		clv_cd.T1 = ((uint16_t)lv_regs[9] << 8) | lv_regs[8];
-		
-		// par_g1 0xED
-		// par_g2 0xEB/0xEC
-		// par_g3 0xEE
-		// res_heat_range 0x02 <5:4>
-		// res_heat_val 0x00
+// G1 0xED, G2 0xEB/0xEC, G3 0xEE, res_heat_range 0x02 <5:4>, res_heat_val 0x00
 		clv_cd.G2 = ((int16_t)lv_regs[11] << 8) | (uint16_t)lv_regs[10];
 		clv_cd.G1 = lv_regs[12];
 		clv_cd.G3 = lv_regs[13];
@@ -412,13 +387,14 @@ void cl_BME680::clf_readCalibCoef(void) {
 
 //============================================
 //    public metods (funcs) for cl_BME680
+//	Bosch Document rev.: 1.9, Date: February 2024, Document N: BST-BME680-DS001-09
 //============================================
 void cl_BME680::do1Meas(void) {    // mode FORCED_MODE DO 1 Measuring
-	cl_BME680::writeReg(0x74, cl_BME680::readReg(0x74) | 0X01);
+	cl_BME680::writeReg(0x74, cl_BME680::readReg(0x74) | 0x01);
 }
 
 bool cl_BME680::isMeas(void) {	// returns TRUE while bme680 is Measuring
-	// Status reg 0x1D bit <6> gas measuring = 1 or bit <5> measuring = 1
+	// Status reg 0x1D, check the bit <6> gas measuring = 1 and the bit <5> measuring = 1
 	return (bool)((cl_BME680::readReg(0x1D) & 0x60));
 }
 
@@ -429,17 +405,18 @@ void cl_BME680::begin() {	// defaults are 16x; Normal mode; 0.5ms, no filter, I2
 void cl_BME680::begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h) {
 	// Read calibration coefficients (data) to clas private (local) variable clv_cd
 	cl_BME680::clf_readCalibCoef();
-/*	Select mode, oversampling and filtering = Step 1, 2, 3
-(osrs_h bit <2:0> regs 0x72, osrs_t bit <7:5> regs 0x74, osrs_p bit <4:2> regs 0x72, mode bit <1:0>)
-p.16 of Bosch Document rev.: 1.9, Date: February 2024, Document N: BST-BME680-DS001-09
-Technical reference code(s): 0 273 141 229; 0 273 141 312		*/
+/*	Select mode, oversampling and filtering = Step 1, 2, 3.
+osrs_h bit <2:0> regs 0x72, osrs_t bit <7:5> regs 0x74, osrs_p bit <4:2> regs 0x72, mode bit <1:0>
+Filtering value (cd_FIL_x..) to Config register address 0x75 bits <4:2>		*/
 	cl_BME680::writeReg(0x72, osrs_h);
 	cl_BME680::writeReg(0x74, ((osrs_t<<5) | (osrs_p<<2) | 0x00) );
+	cl_BME680::writeReg(0x75, filter << 2);
 };    
 
 void cl_BME680::initGasPointX(uint8_t lp_setPoint, uint16_t lp_tagTemp, uint16_t lp_duration, int16_t lp_ambTemp) {
-	//  Up to 10 different hot plate temperature set points can be configured by setting the registers res_heat_X and gas_wait_X,
-	//  where X = 0…9. The internal heater control loop operates on the resistance of the heater structure.
+	//  Up to 10 different hot plate temperature set points can be configured 
+	//	by setting the registers res_heat_X and gas_wait_X, where X = 0…9.
+	//	The internal heater control loop operates on the resistance of the heater structure.
 	//  Hence, the user first needs to convert the target temperature into a device specific target resistance
 	//  before writing the resulting register code into the sensor memory map.
 
@@ -597,7 +574,7 @@ tphg_stru cl_BME680::readTPHG(void) {
 		var2 = (((int64_t)((int64_t)adc_G << 15) - (int64_t)(16777216)) + var1);
 		var3 = (((int64_t)uintTab2[gas_range] * (int64_t)var1) >> 9);
 		uint32_t gas_res = (uint32_t)((var3 + ((int64_t)var2 >> 1)) / (int64_t)var2);
-		lv_tphg.gasr1 = ((float)gas_res) / 1000;
+		lv_tphg.gasr1 = ((float)gas_res) / 1000;	//	resistance kOm
 	}
 
 	return lv_tphg;
