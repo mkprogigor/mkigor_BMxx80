@@ -443,12 +443,13 @@ void cl_BME680::initGasPointX(uint8_t lp_setPoint, uint16_t lp_tagTemp, uint16_t
 	//  Hence, the user first needs to convert the target temperature into a device specific target resistance
 	//  before writing the resulting register code into the sensor memory map.
 
-	//	Enable GAS conversion = Step 4. run_gas =1 (bit <4> reg 0x71) and 
-	//	Select index of heater set-point 0 = Step 5. nb_conv = 0 (bit 3:0 reg 0x71)
+	//	Step 4 - Enable GAS conversion. run_gas =1 (set bit <4> address reg 0x71) and 
+	//	Step 5 - Select index of heater set-point 0-9. nb_conv = 0 (bits <3:0> address reg 0x71)
 	if (lp_setPoint > 9) lp_setPoint = 9;
 	cl_BME680::writeReg(0x71, (0x10 | lp_setPoint) );
 
-	//	Define heater duration Temp = Step 6. gas_wait_0 = 63 ms (bit 5:0 ms and bit 7:6 multiplier reg 0x64-0x6D)
+	//	Step 6 - Define heater duration Temp in ms, reg gas_wait_0-9 
+	//	registers address 0x64-0x6D, bit <5:0> ms and bit <7:6> is multiplier
 	if (lp_duration >= 0x0FC0) {
 		lp_duration = 0x00FF;
 	}
@@ -493,28 +494,24 @@ tphg_stru cl_BME680::readTPHG(void) {
 	uint32_t  adc_H;
 	uint32_t  adc_G;
 	//	Construct normal value from raw data
-	uint8_t lv_nregs = 13;					//	read 14 bytes raw data form 0x1F to 0x1B at once
+	uint8_t lv_nregs = 13;					//	read 13 bytes raw data form 0x1F to 0x1B at once
 	uint8_t lv_regs[lv_nregs];
-	Wire.beginTransmission(clv_i2cAddr);	// addr of start byte raw data (adc) P T H
+	Wire.beginTransmission(clv_i2cAddr);	// addr of start byte raw data (adc) P T H G
 	Wire.write(0x1F);
 	if (Wire.endTransmission() != 0) return lv_tphg;
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs)
 		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
-
 	adc_P = (uint32_t)0 | (lv_regs[0] << 12) | (lv_regs[1] << 4) | (lv_regs[2] >> 4);
 	adc_T = (uint32_t)0 | (lv_regs[3] << 12) | (lv_regs[4] << 4) | (lv_regs[5] >> 4);
 	adc_H = (uint32_t)0 | (lv_regs[6] << 8) | lv_regs[7];
 	adc_G = (uint32_t)0 | ((uint32_t)lv_regs[11] << 2) | (uint32_t)(lv_regs[12] >> 6);
 	uint8_t gas_range = lv_regs[12] & 0x0F;
 	uint8_t range_switching_error = (cl_BME680::readReg(0x04) >> 4);
-	if ( !(lv_regs[12] & 0b00100000) ) Serial.println("Gas Valid = 0 !!!");		// Test for Ok gas measuring
-	if ( !(lv_regs[12] & 0b00010000) ) Serial.println("Heat Stable = 0 !!!");	// Test for Ok gas preheating
+	if (!(lv_regs[12] & 0b00100000)) Serial.println("Gas Not Valid = 0 !!!");		// Test for Ok gas measuring
+	if (!(lv_regs[12] & 0b00010000)) Serial.println("Heat Non Stable = 0 !!!");	// Test for Ok gas preheating
 
-	// Calc T, where
-	// par_t1, par_t2 and par_t3 are calibration parameters,
-	// adc_T is the raw temperature output data,
-	// t_fine carries fine temperature that will use in future calc
-	// temp_comp is the compensated temperature output data in degrees Celsius.
+	// Calc T, where par_t1, par_t2 and par_t3 are calibration parameters,
+	// adc_T - the raw temperature data, t_fine - temperature that will use in future calc
 	int32_t lv_var1, lv_var2, lv_var3, t_fine, temp_comp;
 	if (adc_T == 0x800000) lv_tphg.temp1 = 0;	// if the temperature module has been disabled return '0'
 	else {
@@ -522,94 +519,87 @@ tphg_stru cl_BME680::readTPHG(void) {
 		lv_var2 = (lv_var1 * (int32_t)clv_cd.T2) >> 11;
 		lv_var3 = ((((lv_var1 >> 1) * (lv_var1 >> 1)) >> 12) * ((int32_t)clv_cd.T3 << 4)) >> 14;
 		t_fine = lv_var2 + lv_var3;
-		temp_comp = ((t_fine * 5) + 128) >> 8;
-		lv_tphg.temp1 = ((float)temp_comp) / 100;
-
-		// Calc P, where
-		// • par_p1, par_p2, …, par_p10 are calibration parameters,
-		// • press_adc is the raw pressure output data,
-		// • press_comp is the compensated pressure output data in Pascal.
-		uint32_t press_comp;
-		if (adc_P == 0x800000) {
-			lv_tphg.pres1 = 0;	// If the pressure module has been disabled return '0'
-		}
-		else {
-			lv_var1 = ((int32_t)t_fine >> 1) - 64000;
-			lv_var2 = ((((lv_var1 >> 2) * (lv_var1 >> 2)) >> 11) * (int32_t)clv_cd.P6) >> 2;
-			lv_var2 = lv_var2 + ((lv_var1 * (int32_t)clv_cd.P5) << 1);
-			lv_var2 = (lv_var2 >> 2) + ((int32_t)clv_cd.P4 << 16);
-			lv_var1 = (((((lv_var1 >> 2) * (lv_var1 >> 2)) >> 13) * ((int32_t)clv_cd.P3 << 5)) >> 3) + (((int32_t)clv_cd.P2 * lv_var1) >> 1);
-			lv_var1 = lv_var1 >> 18;
-			lv_var1 = ((32768 + lv_var1) * (int32_t)clv_cd.P1) >> 15;
-			press_comp = 1048576 - adc_P;
-			press_comp = (uint32_t)((press_comp - (lv_var2 >> 12)) * ((uint32_t)3125));
-			if (press_comp >= (1 << 30))
-				press_comp = ((press_comp / (uint32_t)lv_var1) << 1);
-			else
-				press_comp = ((press_comp << 1) / (uint32_t)lv_var1);
-			lv_var1 = ((int32_t)clv_cd.P9 * (int32_t)(((press_comp >> 3) * (press_comp >> 3)) >> 13)) >> 12;
-			lv_var2 = ((int32_t)(press_comp >> 2) * (int32_t)clv_cd.P8) >> 13;
-			lv_var3 = ((int32_t)(press_comp >> 8) * (int32_t)(press_comp >> 8) * (int32_t)(press_comp >> 8) * (int32_t)clv_cd.P10) >> 17;
-			press_comp = (int32_t)(press_comp)+((lv_var1 + lv_var2 + lv_var3 + ((int32_t)clv_cd.P7 << 7)) >> 4);
-			lv_tphg.pres1 = (float)press_comp;
-		}
-
-		// Calc H, where
-		// • par_h1, par_h2, …, par_h7 are calibration parameters,
-		// • hum_adc is the raw humidity output data,
-		// • hum_comp is the compensated humidity output data in percent.
-		int32_t lv_var4, lv_var5, lv_var6, hum_comp;
-		if (adc_H == 0x8000) lv_tphg.humi1 = 0;	// If the humidity module has been disabled return '0'
-		else {
-			int32_t temp_scaled = (int32_t)temp_comp;
-			lv_var1 = (int32_t)adc_H - (int32_t)((int32_t)clv_cd.H1 << 4) -
-				(((temp_scaled * (int32_t)clv_cd.H3) / ((int32_t)100)) >> 1);
-			lv_var2 = ((int32_t)clv_cd.H2 * (((temp_scaled *
-				(int32_t)clv_cd.H4) / ((int32_t)100)) +
-				(((temp_scaled * ((temp_scaled * (int32_t)clv_cd.H5) /
-					((int32_t)100))) >> 6) / ((int32_t)100)) + ((int32_t)(1 << 14)))) >> 10;
-			lv_var3 = lv_var1 * lv_var2;
-			lv_var4 = (((int32_t)clv_cd.H6 << 7) +
-				((temp_scaled * (int32_t)clv_cd.H7) / ((int32_t)100))) >> 4;
-			lv_var5 = ((lv_var3 >> 14) * (lv_var3 >> 14)) >> 10;
-			lv_var6 = (lv_var4 * lv_var5) >> 1;
-			hum_comp = (((lv_var3 + lv_var6) >> 10) * ((int32_t)1000)) >> 12;
-			lv_tphg.humi1 = ((float)hum_comp) / 1024;	// ???
-		}
-
-		// Calc Gas resistance,
-		// Readout of gas sensor resistance ADC value and calculation of gas sensor resistance consists of 3 steps
-		// 1. Read gas ADC value (gas_adc) and gas ADC range (gas_range) (see Section 5.3.4)
-		// 2. Read range switching error from register address 0x04 <7:4> (signed 4 bit)
-		// 3. Convert ADC value into gas sensor resistance in ohm
-		if (adc_G == 0x8000) lv_tphg.gasr1 = 0;	// If the humidity module has been disabled return '0'
-		else {
-			const uint32_t uintTab1[16] = {
-			UINT32_C(2147483647), UINT32_C(2147483647), UINT32_C(2147483647), UINT32_C(2147483647),
-			UINT32_C(2147483647), UINT32_C(2126008810), UINT32_C(2147483647), UINT32_C(2130303777),
-			UINT32_C(2147483647), UINT32_C(2147483647), UINT32_C(2143188679), UINT32_C(2136746228),
-			UINT32_C(2147483647), UINT32_C(2126008810), UINT32_C(2147483647), UINT32_C(2147483647) };
-
-			const uint32_t uintTab2[16] = {
-			UINT32_C(4096000000), UINT32_C(2048000000), UINT32_C(1024000000), UINT32_C(512000000),
-			UINT32_C(255744255),  UINT32_C(127110228),  UINT32_C(64000000),   UINT32_C(32258064),
-			UINT32_C(16016016),   UINT32_C(8000000),    UINT32_C(4000000),    UINT32_C(2000000),
-			UINT32_C(1000000),    UINT32_C(500000),     UINT32_C(250000),     UINT32_C(125000) };
-
-			// 0x2A<9:2>/0x2B<7:6>=<1:0>	gas_adc is the raw gas sensor resistance output data (i.e. ADC value),
-			// 0x2B<3:0>				gas_range 	is the ADC range of the measured gas sensor resistance,
-			// 0x04<7:4>	range_switching_error 	is a calibration parameter,
-			// 							gas_res 	is the compensated gas sensor resistance output data in Ohms.
-			int64_t		var1, var3;
-			uint64_t	var2;
-			var1 = (int64_t)((1340 + (5 * (int64_t)range_switching_error)) * ((int64_t)uintTab1[gas_range])) >> 16;
-			var2 = (((int64_t)((int64_t)adc_G << 15) - (int64_t)(16777216)) + var1);
-			var3 = (((int64_t)uintTab2[gas_range] * (int64_t)var1) >> 9);
-			uint32_t gas_res = (uint32_t)((var3 + ((int64_t)var2 >> 1)) / (int64_t)var2);
-			lv_tphg.gasr1 = ((float)gas_res)/1000;
-		}
-
-		return lv_tphg;
+		lv_tphg.temp1 = ((float)(((t_fine * 5) + 128) >> 8)) / 100;
 	}
+
+	// Calc P, where par_p1, par_p2, …, par_p10 are calibration parameters,
+	// adc_P - the raw pressure data, press_comp - the compensated pressure in Pascal.
+	uint32_t press_comp;
+	if (adc_P == 0x800000) {
+		lv_tphg.pres1 = 0;	// If the pressure module has been disabled return '0'
+	}
+	else {
+		lv_var1 = ((int32_t)t_fine >> 1) - 64000;
+		lv_var2 = ((((lv_var1 >> 2) * (lv_var1 >> 2)) >> 11) * (int32_t)clv_cd.P6) >> 2;
+		lv_var2 = lv_var2 + ((lv_var1 * (int32_t)clv_cd.P5) << 1);
+		lv_var2 = (lv_var2 >> 2) + ((int32_t)clv_cd.P4 << 16);
+		lv_var1 = (((((lv_var1 >> 2) * (lv_var1 >> 2)) >> 13) * ((int32_t)clv_cd.P3 << 5)) >> 3) + (((int32_t)clv_cd.P2 * lv_var1) >> 1);
+		lv_var1 = lv_var1 >> 18;
+		lv_var1 = ((32768 + lv_var1) * (int32_t)clv_cd.P1) >> 15;
+		press_comp = 1048576 - adc_P;
+		press_comp = (uint32_t)((press_comp - (lv_var2 >> 12)) * ((uint32_t)3125));
+		if (press_comp >= (1 << 30))	//	1073741824
+			press_comp = ((press_comp / (uint32_t)lv_var1) << 1);
+		else
+			press_comp = ((press_comp << 1) / (uint32_t)lv_var1);
+		lv_var1 = ((int32_t)clv_cd.P9 * (int32_t)(((press_comp >> 3) * (press_comp >> 3)) >> 13)) >> 12;
+		lv_var2 = ((int32_t)(press_comp >> 2) * (int32_t)clv_cd.P8) >> 13;
+		lv_var3 = ((int32_t)(press_comp >> 8) * (int32_t)(press_comp >> 8) * (int32_t)(press_comp >> 8) * (int32_t)clv_cd.P10) >> 17;
+		press_comp = (int32_t)(press_comp)+((lv_var1 + lv_var2 + lv_var3 + ((int32_t)clv_cd.P7 << 7)) >> 4);
+		lv_tphg.pres1 = (float)press_comp;
+	}
+
+	// Calc H, where par_h1, par_h2, …, par_h7 are calibration parameters,
+	// hum_adc is the raw humidity data, hum_comp - the compensated humidity in percent.
+	int32_t lv_var4, lv_var5, lv_var6, hum_comp;
+	if (adc_H == 0x8000) lv_tphg.humi1 = 0;	// If the humidity module has been disabled return '0'
+	else {
+		int32_t temp_scaled = (int32_t)temp_comp;
+		lv_var1 = (int32_t)adc_H - (int32_t)((int32_t)clv_cd.H1 << 4) -
+			(((temp_scaled * (int32_t)clv_cd.H3) / ((int32_t)100)) >> 1);
+		lv_var2 = ((int32_t)clv_cd.H2 * (((temp_scaled *
+			(int32_t)clv_cd.H4) / ((int32_t)100)) +
+			(((temp_scaled * ((temp_scaled * (int32_t)clv_cd.H5) /
+				((int32_t)100))) >> 6) / ((int32_t)100)) + ((int32_t)(1 << 14)))) >> 10;
+		lv_var3 = lv_var1 * lv_var2;
+		lv_var4 = (((int32_t)clv_cd.H6 << 7) +
+			((temp_scaled * (int32_t)clv_cd.H7) / ((int32_t)100))) >> 4;
+		lv_var5 = ((lv_var3 >> 14) * (lv_var3 >> 14)) >> 10;
+		lv_var6 = (lv_var4 * lv_var5) >> 1;
+		hum_comp = (((lv_var3 + lv_var6) >> 10) * ((int32_t)1000)) >> 12;
+		lv_tphg.humi1 = ((float)hum_comp) / 1024;	// ???
+	}
+
+	// Calc of GAS sensor resistance consists of 4 steps:
+	// 1. Read raw gas sensor resistance data (i.e. ADC value) adc_G	
+	// 		register address 0x2A<9:2>/0x2B<7:6> 	=> adc_G
+	// 2. Read range switching error - a calibration parameter,
+	// 		register address 0x04 bits <7:4>		=> range_switching_error
+	// 3. Read gas ADC range (gas_range) of the measured gas sensor resistance, (see Section 5.3.4)
+	// 		register address 0x2B bits <3:0>	   	=> gas_range
+	// 4. Convert ADC value (adc_G) into compensated gas sensor resistance (gas_res) in Ohm (kOm)
+	if (adc_G == 0x8000) lv_tphg.gasr1 = 0;	// If the humidity module has been disabled return '0'
+	else {
+		const uint32_t uintTab1[16] = {
+		UINT32_C(2147483647), UINT32_C(2147483647), UINT32_C(2147483647), UINT32_C(2147483647),
+		UINT32_C(2147483647), UINT32_C(2126008810), UINT32_C(2147483647), UINT32_C(2130303777),
+		UINT32_C(2147483647), UINT32_C(2147483647), UINT32_C(2143188679), UINT32_C(2136746228),
+		UINT32_C(2147483647), UINT32_C(2126008810), UINT32_C(2147483647), UINT32_C(2147483647) };
+		const uint32_t uintTab2[16] = {
+		UINT32_C(4096000000), UINT32_C(2048000000), UINT32_C(1024000000), UINT32_C(512000000),
+		UINT32_C(255744255),  UINT32_C(127110228),  UINT32_C(64000000),   UINT32_C(32258064),
+		UINT32_C(16016016),   UINT32_C(8000000),    UINT32_C(4000000),    UINT32_C(2000000),
+		UINT32_C(1000000),    UINT32_C(500000),     UINT32_C(250000),     UINT32_C(125000) };
+
+		int64_t		var1, var3;
+		uint64_t	var2;
+		var1 = (int64_t)((1340 + (5 * (int64_t)range_switching_error)) * ((int64_t)uintTab1[gas_range])) >> 16;
+		var2 = (((int64_t)((int64_t)adc_G << 15) - (int64_t)(16777216)) + var1);
+		var3 = (((int64_t)uintTab2[gas_range] * (int64_t)var1) >> 9);
+		uint32_t gas_res = (uint32_t)((var3 + ((int64_t)var2 >> 1)) / (int64_t)var2);
+		lv_tphg.gasr1 = ((float)gas_res) / 1000;
+	}
+
+	return lv_tphg;
 }
 //============================================================================================================
