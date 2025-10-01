@@ -23,7 +23,7 @@ clf_*   -   Class private (Local) metod (Function);
 
 Metods (functions) dont use symbol '_', only small or capital lett
 ************************************************************************************/
-#include <mkigor_BMx280.h>
+#include <mkigor_BMxx80.h>
 
 // #define enDEBUG
 
@@ -89,7 +89,7 @@ bool cl_BMP280::isMeas(void) {	// returns TRUE while bme280 is Measuring
 //	specific  metods (funcs) for cl_BMP280
 //    private metods (funcs)
 //============================================
-void cl_BMP280::clf_readCalibCoef(void) {
+void cl_BMP280::clf_readCalibData(void) {
 	uint8_t lv_nregs = 24;
 	uint8_t lv_regs[lv_nregs];		// temporary array for reading registers
 
@@ -122,7 +122,7 @@ void cl_BMP280::begin() {	// defaults are 16x; Normal mode; 0.5ms, no filter, I2
   }
 
 void cl_BMP280::begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p) {	// init bme280
-	cl_BMP280::clf_readCalibCoef();
+	cl_BMP280::clf_readCalibData();
 
 	uint8_t lv_reg_0xF4 = (osrs_t<<5) | (osrs_p<<2) | mode;
 	uint8_t lv_reg_0xF5 = (t_sb << 5) | (filter << 2) | 0x00;
@@ -195,7 +195,7 @@ tp_stru cl_BMP280::readTP(void) {
 //============================================
 //	specific private metods (funcs) for cl_BME280
 //============================================
-void cl_BME280::clf_readCalibCoef(void) {
+void cl_BME280::clf_readCalibData(void) {
 	uint8_t lv_nregs = 26;
 	uint8_t lv_regs[lv_nregs];		// temporary array for reading registers
 
@@ -241,63 +241,50 @@ void cl_BME280::begin() {	// defaults are 16x; Normal mode; 0.5ms, no filter, I2
 }
 
 void cl_BME280::begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h) {	// init bme280
-	cl_BME280::clf_readCalibCoef();
-
-	uint8_t lv_reg_0xF2 = osrs_h;
-	uint8_t lv_reg_0xF4 = (osrs_t<<5) | (osrs_p<<2) | mode;
-	uint8_t lv_reg_0xF5 = (t_sb << 5) | (filter << 2) | 0x00;
-	
-	cl_BME280::writeReg(0xF2, lv_reg_0xF2);
-	cl_BME280::writeReg(0xF4, lv_reg_0xF4);
-	cl_BME280::writeReg(0xF5, lv_reg_0xF5);
+//	read calibration data coefficient
+	cl_BME280::clf_readCalibData();
+//	write settings to config control registers 0xF2, 0xF4, 0xF5
+	cl_BME280::writeReg(0xF2, osrs_h);
+	cl_BME280::writeReg(0xF4, ((osrs_t<<5) | (osrs_p<<2) | mode) );
+	cl_BME280::writeReg(0xF5, ((t_sb << 5) | (filter << 2) | 0) );
 };    
 
 tph_stru cl_BME280::readTPH(void) {
 	tph_stru lv_tph = { 0, 0, 0 };
-	int32_t  adc_T;
+	int32_t  adc_T, adc_H;
 	uint32_t adc_P;
-	int32_t  adc_H;
 	uint8_t lv_nregs = 8;
-	uint8_t lv_regs[lv_nregs];
-
-	Wire.beginTransmission(clv_i2cAddr);   // addr of first byte raw data Humi
+	uint8_t lv_regs[lv_nregs];		//	local temp array for store registers
+	Wire.beginTransmission(clv_i2cAddr);   // addr of first byte raw data (adc_ P T H)
 	Wire.write(0xF7);
 	if (Wire.endTransmission() != 0) return lv_tph;
-
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs)
 		for (uint8_t i = 0; i < 8; i++) lv_regs[i] = Wire.read();
-	adc_T = ((lv_regs[3] << 16) | (lv_regs[4] << 8) | lv_regs[5]) >> 4;
-	adc_P = ((lv_regs[0] << 16) | (lv_regs[1] << 8) | lv_regs[2]) >> 4;
-	adc_H = (lv_regs[6] << 8) | lv_regs[7];
+	adc_T = ( ((int32_t)lv_regs[3]  << 16) | ((int32_t)lv_regs[4] << 8) | lv_regs[5] ) >> 4;
+	adc_P = ( ((uint32_t)lv_regs[0] << 16) | ((int32_t)lv_regs[1] << 8) | lv_regs[2] ) >> 4;
+	adc_H = ((int32_t)lv_regs[6] << 8) | lv_regs[7];
 
-	// t_fine carries fine temperature as global value
-	int32_t lv_var1, lv_var2, t_fine;
-	if (adc_T == 0x800000) {
-		lv_tph.temp1 = 0;	// if the temperature module has been disabled return '0'
-	}
+
+	int32_t lv_var1, lv_var2, t_fine;	//	Calc T
+	if (adc_T == 0x800000) lv_tph.temp1 = 0;	// if the temperature module has been disabled return '0'
 	else {
 		lv_var1 = ((((adc_T >> 3) - ((int32_t)clv_cd.T1 << 1))) * ((int32_t)clv_cd.T2)) >> 11;
 		lv_var2 = (((((adc_T >> 4) - ((int32_t)clv_cd.T1)) * ((adc_T >> 4) - ((int32_t)clv_cd.T1))) >> 12) * 
 			((int32_t)clv_cd.T3)) >> 14;
-		t_fine = lv_var1 + lv_var2;
+		t_fine = lv_var1 + lv_var2;		// t_fine carries value need in next calc P
 		lv_tph.temp1 = ((float)((t_fine * 5 + 128) >> 8)) / 100;
 	}
 
-	int64_t var1, var2, p;
-	if (adc_P == 0x800000) {
-		lv_tph.pres1 = 0;	// If the pressure module has been disabled return '0'
-	}
+	int64_t var1, var2, p;				//	Calc P
+	if (adc_P == 0x800000) lv_tph.pres1 = 0;	// If the pressure module has been disabled return '0'
 	else {
-		// adc_P >>= 4;	// Start pressure converting
 		var1 = ((int64_t)t_fine) - 128000;
 		var2 = var1 * var1 * (int64_t)clv_cd.P6;
 		var2 = var2 + ((var1 * (int64_t)clv_cd.P5) << 17);
 		var2 = var2 + (((int64_t)clv_cd.P4) << 35);
 		var1 = ((var1 * var1 * (int64_t)clv_cd.P3) >> 8) + ((var1 * (int64_t)clv_cd.P2) << 12);
 		var1 = (((((int64_t)1) << 47) + var1)) * ((int64_t)clv_cd.P1) >> 33;
-		if (var1 == 0) {
-			lv_tph.pres1 = 0;     // avoid exception caused by division by zero
-		}
+		if (var1 == 0) lv_tph.pres1 = 0;     // avoid exception caused by division by zero
 		else {
 			p = 1048576 - adc_P;
 			p = (((p << 31) - var2) * 3125) / var1;
@@ -308,10 +295,8 @@ tph_stru cl_BME280::readTPH(void) {
 		}
 	}
 
-	int32_t v_x1_u32r;
-	if (adc_H == 0x8000) {
-		lv_tph.humi1 = 0;	// If the humidity module has been disabled return '0'
-	}
+	int32_t v_x1_u32r;					//	Calc H
+	if (adc_H == 0x8000) lv_tph.humi1 = 0;	// If the humidity module has been disabled return '0'
 	else {
 		v_x1_u32r = t_fine - ((int32_t)76800);
 		v_x1_u32r = (((((adc_H << 14) - (((int32_t)clv_cd.H4) << 20) - (((int32_t)clv_cd.H5) *
@@ -321,7 +306,7 @@ tph_stru cl_BME280::readTPH(void) {
 		v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) * ((int32_t)clv_cd.H1)) >> 4));
 		v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
 		v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
-		lv_tph.humi1 = (float)((uint32_t)(v_x1_u32r >> 12)) / 1024;
+		lv_tph.humi1 = ((float)(v_x1_u32r >> 12)) / 1024;
 	}
 	return lv_tph;
 }
@@ -331,14 +316,13 @@ tph_stru cl_BME280::readTPH(void) {
 //============================================
 //	specific private metods (funcs) for cl_BME680
 //============================================
-void cl_BME680::clf_readCalibCoef(void) {
+void cl_BME680::clf_readCalibData(void) {
 	uint8_t lv_nregs = 23;
 	uint8_t lv_regs[lv_nregs];		// temporary array for reading registers
-
 	Wire.beginTransmission(clv_i2cAddr);	// first part request
 	Wire.write(0x8A);						// Address of start calib. data (coeff.)
 	if (Wire.endTransmission() != 0) return;
-	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {    // reading 26 regs
+	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {    // reading 23 regs from addr 0x8A
 		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
 // T1 0xE9/0xEA, T2 0x8A/0x8B, T3 0x8C
 // P1 0x8E/0x8F, P2	0x90/0x91, P3 0x92, P4 0x94/0x95, P5 0x96/0x97, P6 0x99, P7 0x98, P8 0x9C/0x9D, P9	0x9E/0x9F, P10	0xA0
@@ -357,14 +341,14 @@ void cl_BME680::clf_readCalibCoef(void) {
 	}
 
 	lv_nregs = 14;
-	Wire.beginTransmission(clv_i2cAddr);	// second part request
+	Wire.beginTransmission(clv_i2cAddr);	// second part request 14 regs
 	Wire.write(0xE1);						// Address of 2d part calibr data
 	Wire.endTransmission();
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {   // reading
 		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
 // H1 0xE2<3:0>/0xE3, H2 0xE2<7:4>/0xE1, H3 0xE4, H4 0xE5, H5 0xE6, H6 0xE7, H7 0xE8
-		clv_cd.H2 = ((uint16_t)lv_regs[0] << 4) | ((uint16_t)lv_regs[1] >> 4);
-		clv_cd.H1 = ((uint16_t)lv_regs[2] << 4) | (uint16_t)(lv_regs[1] & 0x0F);
+		clv_cd.H2 = ((uint16_t)lv_regs[0] << 4) | (lv_regs[1] >> 4);
+		clv_cd.H1 = ((uint16_t)lv_regs[2] << 4) | (lv_regs[1] & 0x0F);
 		clv_cd.H3 = lv_regs[3];
 		clv_cd.H4 = lv_regs[4];
 		clv_cd.H5 = lv_regs[5];
@@ -372,7 +356,7 @@ void cl_BME680::clf_readCalibCoef(void) {
 		clv_cd.H7 = lv_regs[7];
 		clv_cd.T1 = ((uint16_t)lv_regs[9] << 8) | lv_regs[8];
 // G1 0xED, G2 0xEB/0xEC, G3 0xEE, res_heat_range 0x02 <5:4>, res_heat_val 0x00
-		clv_cd.G2 = ((int16_t)lv_regs[11] << 8) | (uint16_t)lv_regs[10];
+		clv_cd.G2 = ((int16_t)lv_regs[11] << 8) | lv_regs[10];
 		clv_cd.G1 = lv_regs[12];
 		clv_cd.G3 = lv_regs[13];
 	};
@@ -394,7 +378,7 @@ void cl_BME680::do1Meas(void) {    // mode FORCED_MODE DO 1 Measuring
 }
 
 bool cl_BME680::isMeas(void) {	// returns TRUE while bme680 is Measuring
-	// Status reg 0x1D, check the bit <6> gas measuring = 1 and the bit <5> measuring = 1
+	// Status reg 0x1D, check the bit <6> gas measuring = 1 and the bit <5> data measuring = 1
 	return (bool)((cl_BME680::readReg(0x1D) & 0x60));
 }
 
@@ -404,12 +388,12 @@ void cl_BME680::begin() {	// defaults are 16x; Normal mode; 0.5ms, no filter, I2
 
 void cl_BME680::begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h) {
 	// Read calibration coefficients (data) to clas private (local) variable clv_cd
-	cl_BME680::clf_readCalibCoef();
-/*	Select mode, oversampling and filtering = Step 1, 2, 3.
+	cl_BME680::clf_readCalibData();
+/*	Select mode, oversampling and filtering = Step 1, 2, 3. (3.2.2 Sensor configuration flow, p.16)
 osrs_h bit <2:0> regs 0x72, osrs_t bit <7:5> regs 0x74, osrs_p bit <4:2> regs 0x72, mode bit <1:0>
 Filtering value (cd_FIL_x..) to Config register address 0x75 bits <4:2>		*/
 	cl_BME680::writeReg(0x72, osrs_h);
-	cl_BME680::writeReg(0x74, ((osrs_t<<5) | (osrs_p<<2) | 0x00) );
+	cl_BME680::writeReg(0x74, ((osrs_t<<5) | (osrs_p<<2) | 0) );
 	cl_BME680::writeReg(0x75, filter << 2);
 };    
 
@@ -417,7 +401,8 @@ void cl_BME680::initGasPointX(uint8_t lp_setPoint, uint16_t lp_tagTemp, uint16_t
 	//  Up to 10 different hot plate temperature set points can be configured 
 	//	by setting the registers res_heat_X and gas_wait_X, where X = 0…9.
 	//	The internal heater control loop operates on the resistance of the heater structure.
-	//  Hence, the user first needs to convert the target temperature into a device specific target resistance
+	//  Hence, the user first needs to convert the target temperature 
+	//	into a device specific target resistance (res_heat_X))
 	//  before writing the resulting register code into the sensor memory map.
 
 	//	Step 4 - Enable GAS conversion. run_gas =1 (set bit <4> address reg 0x71) and 
@@ -440,18 +425,16 @@ void cl_BME680::initGasPointX(uint8_t lp_setPoint, uint16_t lp_tagTemp, uint16_t
 	}
 	cl_BME680::writeReg(0x64 + lp_setPoint, (uint8_t)lp_duration);
 
-	//	Set heater Temp = Step 7. Convert temperature to register cspecific val. Set res_heat_0 (bit <7:0> reg 0x5A-0x63)
-	//	make function clf_calcResHeatX()
-
-	// •	par_g1, par_g2, and par_g3 are calibration parameters,
-	// •	target_temp is the target heater temperature in degree Celsius,
-	// •	amb_temp is the ambient temperature (hardcoded or read from temperature sensor),
-	// •	var5 is the target heater resistance in Ohm,
-	// •	res_heat_x is the decimal value that needs to be stored in register,
-	// 			where 'x' corresponds to the temperature profilenumber between 0 and 9,
-	// •	res_heat_range is the heater range stored in register address 0x02 <5:4>, and
-	// •	res_heat_val is the heater resistance correction factor stored in register address 0x00 
-	// 			(signed, value from -128 to 127).
+	//	Set heater Temp = Step 7.
+	//	Convert temperature to register cspecific val. Set res_heat_X (reg 0x5A-0x63)
+	// G1, G2, G3	- calibration parameters,
+	// targTemp 	- the target heater temperature in degree Celsius,
+	// ambTemp	 	- the ambient temperature (hardcoded or read from temperature sensor),
+	// var5 		- the target heater resistance in Ohm,
+	// res_heat_X	- the device specific target resistance value that needs to be stored in register,
+	//	where 'X' corresponds to the temperature profilenumber between 0 and 9 stored in regs 0x5A-0x63
+	// res_heat_range 	- the heater range stored in register address 0x02 <5:4>, and
+	// res_heat_val - the heater resistance correction factor stored in register address 0x00, signed, value from -128 to 127
 	int32_t var1 = (((int32_t)lp_ambTemp * clv_cd.G3) / 10) << 8;
 	int32_t var2 = (clv_cd.G1 + 784) * (((((clv_cd.G2 + 154009) * lp_tagTemp * 5) / 100) + 3276800) / 10);
 	int32_t var3 = var1 + (var2 >> 1);
@@ -460,20 +443,17 @@ void cl_BME680::initGasPointX(uint8_t lp_setPoint, uint16_t lp_tagTemp, uint16_t
 	int32_t var4 = (var3 / (res_heat_range + 4));
 	int32_t var5 = (131 * res_heat_val) + 65536;
 	int32_t res_heat_x100 = (int32_t)(((var4 / var5) - 250) * 34);
-	uint8_t res_heat_0 = (uint8_t)((res_heat_x100 + 50) / 100);
-	cl_BME680::writeReg(0x5A + lp_setPoint, res_heat_0);
+	uint8_t res_heat_X = (uint8_t)((res_heat_x100 + 50) / 100);
+	cl_BME680::writeReg(0x5A + lp_setPoint, res_heat_X);
 }
 
 tphg_stru cl_BME680::readTPHG(void) {
 	tphg_stru lv_tphg = { 0, 0, 0, 0 };
-	uint32_t  adc_T;
-	uint32_t  adc_P;
-	uint32_t  adc_H;
-	uint32_t  adc_G;
-	//	Construct normal value from raw data
-	uint8_t lv_nregs = 13;					//	read 13 bytes raw data form 0x1F to 0x1B at once
+	uint32_t  adc_T, adc_P, adc_H, adc_G;
+	// read 13 bytes raw data (adc_ P T H G) from addr 0x1F to 0x1B at once I2C request
+	uint8_t lv_nregs = 13;
 	uint8_t lv_regs[lv_nregs];
-	Wire.beginTransmission(clv_i2cAddr);	// addr of start byte raw data (adc) P T H G
+	Wire.beginTransmission(clv_i2cAddr);
 	Wire.write(0x1F);
 	if (Wire.endTransmission() != 0) return lv_tphg;
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs)
@@ -484,8 +464,14 @@ tphg_stru cl_BME680::readTPHG(void) {
 	adc_G = (uint32_t)0 | ((uint32_t)lv_regs[11] << 2) | (uint32_t)(lv_regs[12] >> 6);
 	uint8_t gas_range = lv_regs[12] & 0x0F;
 	uint8_t range_switching_error = (cl_BME680::readReg(0x04) >> 4);
-	if (!(lv_regs[12] & 0b00100000)) Serial.println("Gas Not Valid = 0 !!!");		// Test for Ok gas measuring
+#ifdef enDEBUG
+	uint8_t lv_status = cl_BME680.readReg(0x1D);
+	if (lv_status & 0b10000000) Serial.println("new_data_0 = 1, moment when new measuring data have been arrive.");
+	if (lv_status & 0b01000000) Serial.println("gas_measuring = 1, moment gas data is measuring.");
+	if (lv_status & 0b00100000) Serial.println("measuring = 1, moment raw data is measuring.");
+	if (!(lv_regs[12] & 0b00100000)) Serial.println("Gas Not Valid = 0 !!!");	// Test for Ok gas measuring
 	if (!(lv_regs[12] & 0b00010000)) Serial.println("Heat Non Stable = 0 !!!");	// Test for Ok gas preheating
+#endif
 
 	// Calc T, where par_t1, par_t2 and par_t3 are calibration parameters,
 	// adc_T - the raw temperature data, t_fine - temperature that will use in future calc
