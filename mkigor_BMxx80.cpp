@@ -24,6 +24,7 @@ clf_*   -   Class private (Local) metod (Function);
 Metods (functions) dont use symbol '_', only small or capital lett
 ************************************************************************************/
 #include <mkigor_BMxx80.h>
+#include <Arduino.h>
 
 // #define enDEBUG
 
@@ -203,8 +204,7 @@ void cl_BME280::clf_readCalibData(void) {
 	Wire.write(0x88);
 	if (Wire.endTransmission() != 0) return;
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {    // reading 26 regs
-		for (uint8_t i = 0; i < 25; i++) lv_regs[i] = Wire.read();
-
+		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
 		clv_cd.T1 = lv_regs[1] << 8 | lv_regs[0];   // form struct
 		clv_cd.T2 = lv_regs[3] << 8 | lv_regs[2];
 		clv_cd.T3 = lv_regs[5] << 8 | lv_regs[4];
@@ -220,17 +220,25 @@ void cl_BME280::clf_readCalibData(void) {
 		clv_cd.H1 = lv_regs[25];
 	}
 
-	Wire.beginTransmission(clv_i2cAddr);   // second part request
+	lv_nregs = 7;
+	Wire.beginTransmission(clv_i2cAddr);   // second part request 7 regs
 	Wire.write(0xE1);
 	Wire.endTransmission();
-	if (Wire.requestFrom(clv_i2cAddr, 7) == 7) {   // reading
-		for (uint8_t i = 0; i < 7; i++) lv_regs[i] = Wire.read();
+	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {
+		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
 		clv_cd.H2 = lv_regs[1] << 8 | lv_regs[0]; // (Wire.read() | (Wire.read() << 8));
 		clv_cd.H3 = lv_regs[2];
 		clv_cd.H4 = (((int16_t)lv_regs[3]) << 4) | (int16_t)(lv_regs[4] & 0x0F);
 		clv_cd.H5 = (((int16_t)lv_regs[5]) << 4) | (int16_t)((lv_regs[4] & 0xF0) >> 4);
 		clv_cd.H6 = lv_regs[6];
 	};
+#ifdef enDEBUG
+	printf("\nCalibrated data BME280:\n", clv_cd.T1, clv_cd.T2, clv_cd.T3);
+	printf("T1-T3 = %d %d %d \n", clv_cd.T1, clv_cd.T2, clv_cd.T3);
+    printf("P1-p9 = %d %d %d %d %d %d %d %d %d \n", clv_cd.P1, clv_cd.P2, clv_cd.P3, clv_cd.P4, clv_cd.P5, clv_cd.P6, clv_cd.P7, clv_cd.P8, clv_cd.P9);
+    printf("H1-H6 = %d %d %d %d %d %d \n\n", clv_cd.H1, clv_cd.H2, clv_cd.H3, clv_cd.H4, clv_cd.H5, clv_cd.H6);
+#endif
+
 }
 
 //============================================
@@ -251,66 +259,83 @@ void cl_BME280::begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t
 
 tph_stru cl_BME280::readTPH(void) {
 	tph_stru lv_tph = { 0, 0, 0 };
-	int32_t  adc_T, adc_H;
-	uint32_t adc_P;
+	int32_t  adc_T, adc_H, adc_P, var1, var2, var3, var4, var5, t_fine;
+	// uint32_t adc_P;
+
 	uint8_t lv_nregs = 8;
 	uint8_t lv_regs[lv_nregs];		//	local temp array for store registers
 	Wire.beginTransmission(clv_i2cAddr);   // addr of first byte raw data (adc_ P T H)
 	Wire.write(0xF7);
 	if (Wire.endTransmission() != 0) return lv_tph;
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs)
-		for (uint8_t i = 0; i < 8; i++) lv_regs[i] = Wire.read();
-	adc_T = ( ((int32_t)lv_regs[3]  << 16) | ((int32_t)lv_regs[4] << 8) | lv_regs[5] ) >> 4;
-	adc_P = ( ((uint32_t)lv_regs[0] << 16) | ((int32_t)lv_regs[1] << 8) | lv_regs[2] ) >> 4;
+		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
+	adc_T = (((int32_t)lv_regs[3] << 16) | ((int32_t)lv_regs[4] << 8) | lv_regs[5]) >> 4;
+	adc_P = (((int32_t)lv_regs[0] << 16) | ((int32_t)lv_regs[1] << 8) | lv_regs[2]) >> 4;
 	adc_H = ((int32_t)lv_regs[6] << 8) | lv_regs[7];
+#ifdef enDEBUG
+	printf("adc_ T P H = %d %d %d \n", adc_T, adc_P, adc_H);
+#endif
 
-
-	int32_t lv_var1, lv_var2, t_fine;	//	Calc T
+	//	Calc T
 	if (adc_T == 0x800000) lv_tph.temp1 = 0;	// if the temperature module has been disabled return '0'
 	else {
-		lv_var1 = ((((adc_T >> 3) - ((int32_t)clv_cd.T1 << 1))) * ((int32_t)clv_cd.T2)) >> 11;
-		lv_var2 = (((((adc_T >> 4) - ((int32_t)clv_cd.T1)) * ((adc_T >> 4) - ((int32_t)clv_cd.T1))) >> 12) * 
-			((int32_t)clv_cd.T3)) >> 14;
-		t_fine = lv_var1 + lv_var2;		// t_fine carries value need in next calc P
-		lv_tph.temp1 = ((float)((t_fine * 5 + 128) >> 8)) / 100;
+		var1 = (int32_t)((adc_T / 8) - ((int32_t)clv_cd.T1 * 2));
+		var1 = (var1 * ((int32_t)clv_cd.T2)) / 2048;
+		var2 = (int32_t)((adc_T / 16) - ((int32_t)clv_cd.T1));
+		var2 = (((var2 * var2) / 4096) * ((int32_t)clv_cd.T3)) / 16384;
+		t_fine = var1 + var2;
+		lv_tph.temp1 = (float)((t_fine * 5 + 128) / 256) / 100.0;
 	}
 
-	int64_t var1, var2, p;				//	Calc P
+	//	Calc P
 	if (adc_P == 0x800000) lv_tph.pres1 = 0;	// If the pressure module has been disabled return '0'
 	else {
-		var1 = ((int64_t)t_fine) - 128000;
-		var2 = var1 * var1 * (int64_t)clv_cd.P6;
-		var2 = var2 + ((var1 * (int64_t)clv_cd.P5) << 17);
-		var2 = var2 + (((int64_t)clv_cd.P4) << 35);
-		var1 = ((var1 * var1 * (int64_t)clv_cd.P3) >> 8) + ((var1 * (int64_t)clv_cd.P2) << 12);
-		var1 = (((((int64_t)1) << 47) + var1)) * ((int64_t)clv_cd.P1) >> 33;
-		if (var1 == 0) lv_tph.pres1 = 0;     // avoid exception caused by division by zero
+		int64_t var1_i64, var2_i64, var3_i64, var4_i64;
+
+		var1_i64 = ((int64_t)t_fine) - 128000;
+		var2_i64 = var1_i64 * var1_i64 * (int64_t)clv_cd.P6;
+		var2_i64 = var2_i64 + ((var1_i64 * (int64_t)clv_cd.P5) * 131072);
+		var2_i64 = var2_i64 + (((int64_t)clv_cd.P4) * 34359738368);
+		var1_i64 = ((var1_i64 * var1_i64 * (int64_t)clv_cd.P3) / 256) +
+			((var1_i64 * ((int64_t)clv_cd.P2) * 4096));
+		// var3_i64 = ((int64_t)1) * 140737488355328;
+		var3_i64 = 140737488355328;
+		var1_i64 = (var3_i64 + var1_i64) * ((int64_t)clv_cd.P1) / 8589934592;
+
+		if (var1_i64 == 0) lv_tph.pres1 = 0;	// avoid exception caused by division by zero
 		else {
-			p = 1048576 - adc_P;
-			p = (((p << 31) - var2) * 3125) / var1;
-			var1 = (((int64_t)clv_cd.P9) * (p >> 13) * (p >> 13)) >> 25;
-			var2 = (((int64_t)clv_cd.P8) * p) >> 19;
-			p = ((p + var1 + var2) >> 8) + (((int64_t)clv_cd.P7) << 4);
-			lv_tph.pres1 = ((float)p) / 256;
+			var4_i64 = 1048576 - adc_P;
+			var4_i64 = (((var4_i64 * 2147483648) - var2_i64) * 3125) / var1_i64;
+			var1_i64 = (((int64_t)clv_cd.P9) * (var4_i64 / 8192) * (var4_i64 / 8192)) /	33554432;
+			var2_i64 = (((int64_t)clv_cd.P8) * var4_i64) / 524288;
+			var4_i64 = ((var4_i64 + var1_i64 + var2_i64) / 256) + (((int64_t)clv_cd.P7) * 16);
+
+			lv_tph.pres1 = (float)var4_i64 / 256.0;
 		}
 	}
 
-	int32_t v_x1_u32r;					//	Calc H
+	//	Calc H
 	if (adc_H == 0x8000) lv_tph.humi1 = 0;	// If the humidity module has been disabled return '0'
 	else {
-		v_x1_u32r = t_fine - ((int32_t)76800);
-		v_x1_u32r = (((((adc_H << 14) - (((int32_t)clv_cd.H4) << 20) - (((int32_t)clv_cd.H5) *
-			v_x1_u32r)) + ((int32_t)16384)) >> 15) * (((((((v_x1_u32r *
-				((int32_t)clv_cd.H6)) >> 10) * (((v_x1_u32r * ((int32_t)clv_cd.H3)) >> 11) +
-					((int32_t)32768))) >> 10) + ((int32_t)2097152)) * ((int32_t)clv_cd.H2) + 8192) >> 14));
-		v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) * ((int32_t)clv_cd.H1)) >> 4));
-		v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
-		v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
-		lv_tph.humi1 = ((float)(v_x1_u32r >> 12)) / 1024;
+		var1 = t_fine - ((int32_t)76800);
+		var2 = (int32_t)(adc_H * 16384);
+		var3 = (int32_t)(((int32_t)clv_cd.H4) * 1048576);
+		var4 = ((int32_t)clv_cd.H5) * var1;
+		var5 = (((var2 - var3) - var4) + (int32_t)16384) / 32768;
+		var2 = (var1 * ((int32_t)clv_cd.H6)) / 1024;
+		var3 = (var1 * ((int32_t)clv_cd.H3)) / 2048;
+		var4 = ((var2 * (var3 + (int32_t)32768)) / 1024) + (int32_t)2097152;
+		var2 = ((var4 * ((int32_t)clv_cd.H2)) + 8192) / 16384;
+		var3 = var5 * var2;
+		var4 = ((var3 / 32768) * (var3 / 32768)) / 128;
+		var5 = var3 - ((var4 * ((int32_t)clv_cd.H1)) / 16);
+		var5 = (var5 < 0 ? 0 : var5);
+		var5 = (var5 > 419430400 ? 419430400 : var5);
+		lv_tph.humi1 = (float)(var5 / 4096) / 1024.0;
 	}
+
 	return lv_tph;
 }
-
 
 
 //============================================
@@ -361,10 +386,11 @@ void cl_BME680::clf_readCalibData(void) {
 		clv_cd.G3 = lv_regs[13];
 	};
 #ifdef enDEBUG
+	printf("\nCalibrated data BME680:\n", clv_cd.T1, clv_cd.T2, clv_cd.T3);
 	printf("T1-T3  = %d %d %d \n", clv_cd.T1, clv_cd.T2, clv_cd.T3);
     printf("P1-p10 = %d %d %d %d %d %d %d %d %d %d \n", clv_cd.P1, clv_cd.P2, clv_cd.P3, clv_cd.P4, clv_cd.P5, clv_cd.P6, clv_cd.P7, clv_cd.P8, clv_cd.P9, clv_cd.P10);
     printf("H1-H7  = %d %d %d %d %d %d %d \n", clv_cd.H1, clv_cd.H2, clv_cd.H3, clv_cd.H4, clv_cd.H5, clv_cd.H6, clv_cd.H7);
-    printf("G1-G3  = %d %d %d \n", clv_cd.G1, clv_cd.G2, clv_cd.G3);
+    printf("G1-G3  = %d %d %d \n\n", clv_cd.G1, clv_cd.G2, clv_cd.G3);
 #endif
 }
 
@@ -382,8 +408,8 @@ bool cl_BME680::isMeas(void) {	// returns TRUE while bme680 is Measuring
 	return (bool)((cl_BME680::readReg(0x1D) & 0x60));
 }
 
-void cl_BME680::begin() {	// defaults are 16x; Normal mode; 0.5ms, no filter, I2C
-	cl_BME680::begin(cd_FIL_x16, cd_OS_x16, cd_OS_x16, cd_OS_x16); // filter x16, oversampling TPH x16
+void cl_BME680::begin() {
+	cl_BME680::begin(cd_FIL_x2, cd_OS_x16, cd_OS_x16, cd_OS_x16); // default: filter x2, oversampling TPH x16
 }
 
 void cl_BME680::begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h) {
@@ -450,9 +476,11 @@ void cl_BME680::initGasPointX(uint8_t lp_setPoint, uint16_t lp_tagTemp, uint16_t
 tphg_stru cl_BME680::readTPHG(void) {
 	tphg_stru lv_tphg = { 0, 0, 0, 0 };
 	uint32_t  adc_T, adc_P, adc_H, adc_G;
-	// read 13 bytes raw data (adc_ P T H G) from addr 0x1F to 0x1B at once I2C request
+	int32_t lv_var1, lv_var2, lv_var3, t_fine, temp_comp;
+
+	// read raw data (adc_ P T H G) from addr 0x1F to 0x1B at once I2C request
 	uint8_t lv_nregs = 13;
-	uint8_t lv_regs[lv_nregs];
+	uint8_t lv_regs[lv_nregs];		//	temp array
 	Wire.beginTransmission(clv_i2cAddr);
 	Wire.write(0x1F);
 	if (Wire.endTransmission() != 0) return lv_tphg;
@@ -465,17 +493,17 @@ tphg_stru cl_BME680::readTPHG(void) {
 	uint8_t gas_range = lv_regs[12] & 0x0F;
 	uint8_t range_switching_error = (cl_BME680::readReg(0x04) >> 4);
 #ifdef enDEBUG
-	uint8_t lv_status = cl_BME680.readReg(0x1D);
+	uint8_t lv_status = cl_BME680::readReg(0x1D);
 	if (lv_status & 0b10000000) Serial.println("new_data_0 = 1, moment when new measuring data have been arrive.");
 	if (lv_status & 0b01000000) Serial.println("gas_measuring = 1, moment gas data is measuring.");
 	if (lv_status & 0b00100000) Serial.println("measuring = 1, moment raw data is measuring.");
 	if (!(lv_regs[12] & 0b00100000)) Serial.println("Gas Not Valid = 0 !!!");	// Test for Ok gas measuring
 	if (!(lv_regs[12] & 0b00010000)) Serial.println("Heat Non Stable = 0 !!!");	// Test for Ok gas preheating
+	printf("adc_ T P H G =  %d %d %d %d \n", adc_T, adc_P, adc_H, adc_G);
 #endif
 
 	// Calc T, where par_t1, par_t2 and par_t3 are calibration parameters,
 	// adc_T - the raw temperature data, t_fine - temperature that will use in future calc
-	int32_t lv_var1, lv_var2, lv_var3, t_fine, temp_comp;
 	if (adc_T == 0x800000) lv_tphg.temp1 = 0;	// if the temperature module has been disabled return '0'
 	else {
 		lv_var1 = ((int32_t)adc_T >> 3) - ((int32_t)clv_cd.T1 << 1);
@@ -487,11 +515,11 @@ tphg_stru cl_BME680::readTPHG(void) {
 
 	// Calc P, where par_p1, par_p2, …, par_p10 are calibration parameters,
 	// adc_P - the raw pressure data, press_comp - the compensated pressure in Pascal.
-	uint32_t press_comp;
 	if (adc_P == 0x800000) {
 		lv_tphg.pres1 = 0;	// If the pressure module has been disabled return '0'
 	}
 	else {
+		uint32_t press_comp;
 		lv_var1 = ((int32_t)t_fine >> 1) - 64000;
 		lv_var2 = ((((lv_var1 >> 2) * (lv_var1 >> 2)) >> 11) * (int32_t)clv_cd.P6) >> 2;
 		lv_var2 = lv_var2 + ((lv_var1 * (int32_t)clv_cd.P5) << 1);
