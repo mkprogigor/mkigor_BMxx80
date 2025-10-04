@@ -1,4 +1,4 @@
-# mkigor_BMx280
+# mkigor_BMxx80
 Lightweight and short library for Bosch sensor BME280 and BMP280 (maybe BME680) for Arduino.
 It is not pretend to the most optimal code, but it is example of learning C++ OOP for programing MCU.
 Classes, Encapsulating metods (functions), Inheritance classes.
@@ -35,7 +35,7 @@ But You can check it.<BR>
 Function => `bool isMeas(void)`<BR>
 returns TRUE while the bmp280 or bme280 IS MEASuring, otherwise FALSE.<BR>
 
-#BME280<br>
+# BME280<br>
 ```c++
 struct tph_srtu {
   float temp1;
@@ -46,7 +46,7 @@ struct tph_srtu {
 Function => `tph_stru readTPH(void)`<BR>
 This metod (function) DOES NOT make measurement! The function only reads RAW data in one I2C request, decoding to real (compensate) value T,P,H and return it in structure variable.<BR>
 
-#BME680<>
+# BME680<>
 ```c++
 struct tph_srtu {
   float temp1;
