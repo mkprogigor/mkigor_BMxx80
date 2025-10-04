@@ -496,8 +496,8 @@ tphg_stru cl_BME680::readTPHG(void) {
 	if (lv_status & 0b10000000) Serial.println("new_data_0 = 1, moment when new measuring data have been arrive.");
 	if (lv_status & 0b01000000) Serial.println("gas_measuring = 1, moment gas data is measuring.");
 	if (lv_status & 0b00100000) Serial.println("measuring = 1, moment raw data is measuring.");
-	if (!(lv_regs[12] & 0b00100000)) Serial.println("Gas Not Valid = 0 !!!");	// Test for Ok gas measuring
-	if (!(lv_regs[12] & 0b00010000)) Serial.println("Heat Non Stable = 0 !!!");	// Test for Ok gas preheating
+	if (!(lv_regs[12] & 0b00100000)) Serial.println("Gas Not Valid bit<5> = 0 !!!");	// Test for Ok gas measuring
+	if (!(lv_regs[12] & 0b00010000)) Serial.println("Heat Not Stable bit<4> = 0 !!!");	// Test for Ok gas preheating
 	printf("adc_ T P H G =  %d %d %d %d \n", adc_T, adc_P, adc_H, adc_G);
 #endif
 

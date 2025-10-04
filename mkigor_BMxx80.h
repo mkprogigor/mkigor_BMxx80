@@ -149,14 +149,14 @@ private:
     void clf_readCalibData(void);                        // read calibration coeff(data)
 
 public:
-    cl_BME280() {           // default class constructor
-        clv_i2cAddr  = 0x76;    //  default BME280 i2c address
-        clv_codeChip = 0;       //  default code chip 0 => not found.
+    cl_BME280() {               // default class constructor
+        clv_i2cAddr  = 0x76;    // default BME280 i2c address
+        clv_codeChip = 0;       // default code chip 0 => not found.
     }
 
     void begin();               // init BMx280 with default parameters FORCED mode and max measuring 
     void begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h); // overloaded function init
-    tph_stru readTPH(void); // read, calculate and return structure T, P, H
+    tph_stru readTPH(void);     // read, calculate and return structure T, P, H
 };
 
 //================================================
@@ -166,8 +166,7 @@ class cl_BME680: public cl_BMP280 {
 private:
     uint8_t clv_i2cAddr;
     uint8_t clv_codeChip;
-//    int16_t clv_tagTemp;
-    struct {                                // clv_cd = structure of calibration data (coefficients)
+    struct {             // clv_cd = structure of calibration data (coefficients)
         uint16_t T1;
         int16_t  T2;
         int8_t   T3;
@@ -195,7 +194,7 @@ private:
         int16_t  G2;
         int8_t   G3;
     } clv_cd;
-    void clf_readCalibData(void);                        // read calibration coeff(data)
+    void clf_readCalibData(void); // read calibration coeff(data)
 
 public:
     cl_BME680() {               // default class constructor
@@ -206,8 +205,8 @@ public:
     void do1Meas(void);         // mode FORCED_MODE DO 1 Measuring}
     bool isMeas(void);          // returns TRUE while bme680 is Measuring
     void begin();               // init BMx280 with default parameters FORCED mode and max measuring 
-    void begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h); // overloaded function init
-    tphg_stru readTPHG(void);   // read, calculate and return structure T, P, H
+    void begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h); // overloaded function
+    tphg_stru readTPHG(void);   // read, calculate and return structure T, P, H, G
 };
 
 #endif
