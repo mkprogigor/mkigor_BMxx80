@@ -8,7 +8,7 @@ with max oversampling x16 of T,P,H, filter x2. It's suitable for weather station
 
 Function (metod) => `uint8_t check(uint8_t lv_i2caddr)`<BR>
 It must be call 1st, because it checks presence of sensor!<BR>
-Fn check connection with sensor by I2C address `lv_i2caddr` (usualy 0x76 or 0x77).<BR>
+Fn check connection with sensor by I2C address `lv_i2caddr` (usually 0x76 or 0x77).<BR>
 Fn return byte: 0 = if sensor does not present or CHIP CODE in otherwise.<BR>
 Possible chip codes are: 0x58=>BMP280, 0x60=>BME280, 0x61=>BME680.<BR>
 Note: i2c address 0x76, 0x77 possible for BMP280 or BME280 or BME680 - pl, check it.<BR>
@@ -48,11 +48,10 @@ This metod (function) DOES NOT make measurement! The function only reads RAW dat
 # BME680
 Function => `void begin()`<BR>
 Default init bme680: FORCED MODE, with x16 oversampling T P H and x2 filter.<BR>
-
 Function => `void begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h)`<BR>
 Init bme680 with Your parameters:<BR>
-filter  =  value of filterring - FIL_OFF, FIL_x2, FIL_x4, FIL_x8, FIL_x16;<BR>
-osrs_t, osrs_p, osrs_h = oversampling value for T,P,H - OS_OFF, OS_x1, OS_x2, OS_x4, OS_x8, OS_x16.<BR>
+filter                  = value of filterring;<BR>
+osrs_t, osrs_p, osrs_h  = oversampling value for T,P,H;<BR>
 Function => `void initGasPointX(uint8_t fp_point = 0, uint16_t fp_tagTemp = 300, uint16_t fp_duration = 63, int16_t fp_ambTemp = 20);`<BR>
 it is need use additional init function for BME680 sensor tonfigurate heat set point 0..9:<br>
 uint8_t  fp_point    = number of set point, what You want to use 0..9;<br>
