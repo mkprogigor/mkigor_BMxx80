@@ -47,7 +47,7 @@ This metod (function) DOES NOT make measurement!<BR>
 The function only reads data in one I2C request,<BR>
 decoding to value T,P,H and return it in structure variable.<BR>
 
-I used oficial Bosch datasheet bmp280, bme280 and examples (thanks) for making this lib:<BR>
+I used oficial Bosch datasheet bmp280, bme280, bme680. But datasheets have errors, I finded working code in next libs, becouse THE CODE IS THE DOCUMENTATION :-) I thanks authors for help in coding:<BR>
 https://github.com/GyverLibs/GyverBME280<BR>
 https://github.com/farmerkeith/BMP280-library/<BR>
 https://github.com/boschsensortec/BME280_SensorAPI<BR>
