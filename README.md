@@ -15,7 +15,7 @@ Possible chip codes are: 0x58=>BMP280, 0x60=>BME280, 0x61=>BME680.<BR>
 Note: i2c address 0x77 possible for BMP280 or BME280 or BME680 or MS5607,MS5611,MS5637, - check it.<BR>
 
 Function => `void begin()`<BR>
-Default setup for bmp280 or bme280: FORCED MODE, with x16 oversampling and x16 filter.<BR>
+Default setup for bmp280 or bme280: FORCED MODE, with x16 oversampling and x2 filter.<BR>
 
 Function => `void begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h)`<BR>
 Default setup for bmp280 or bme280 with Your parameters:<BR>
@@ -35,7 +35,7 @@ But You can check it.<BR>
 Function => `bool isMeas(void)`<BR>
 returns TRUE while the bmp280 or bme280 IS MEASuring, otherwise FALSE.<BR>
 
-# BME280<br>
+# BME280
 ```c++
 struct tph_srtu {
   float temp1;
@@ -46,7 +46,20 @@ struct tph_srtu {
 Function => `tph_stru readTPH(void)`<BR>
 This metod (function) DOES NOT make measurement! The function only reads RAW data in one I2C request, decoding to real (compensate) value T,P,H and return it in structure variable.<BR>
 
-# BME680<>
+# BME680
+Function => `void begin()`<BR>
+Default init bme680: FORCED MODE, with x16 oversampling T P H and x2 filter.<BR>
+
+Function => `void begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h)`<BR>
+Init bme680 with Your parameters:<BR>
+filter  =  value of filterring - FIL_OFF, FIL_x2, FIL_x4, FIL_x8, FIL_x16;<BR>
+osrs_t, osrs_p, osrs_h = oversampling value for T,P,H - OS_OFF, OS_x1, OS_x2, OS_x4, OS_x8, OS_x16.<BR>
+Function => `void initGasPointX(uint8_t fp_point = 0, uint16_t fp_tagTemp = 300, uint16_t fp_duration = 63, int16_t fp_ambTemp = 20);`<BR>
+it is need use additional init function for BME680 sensor tonfigurate heat set point 0..9:<br>
+uint8_t  fp_point    = number of set point, what You want to use 0..9;<br>
+uint16_t fp_tagTemp  = taget temperature fof preheating Gas sensor;<br>
+uint16_t fp_duration = time duration of preheating in ms;<br>
+int16_t  fp_ambTemp  = ambient temperature.<br>
 ```c++
 struct tph_srtu {
   float temp1;
@@ -55,7 +68,7 @@ struct tph_srtu {
   float gasr1;
 };
 ```
-Function => `tph_stru readTPH(void)`<BR>
+Function => `tph_stru readTPHG(void)`<BR>
 This metod (function) DOES NOT make measurement! The function only reads RAW data in one I2C request, decoding to real (compensate) value T,P,H,G and return it in structure variable.<BR>
 
 I used oficial Bosch datasheet bmp280, bme280, bme680. But datasheets have errors, I finded working code in next libs, becouse THE CODE IS THE DOCUMENTATION :-) I thanks authors for help in coding:<BR>
