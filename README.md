@@ -49,7 +49,7 @@ Fn => `void begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h
 Init bme680 with Your parameters:<BR>
 `filter                  = value of filterring;`<BR>
 `osrs_t, osrs_p, osrs_h  = oversampling value for T,P,H.`<BR>
-Fn => `void initGasPointX(uint8_t point = 0, uint16_t tagTemp, uint16_t duration, int16_t ambTemp);`<BR>
+Fn => `void initGasPointX(uint8_t point, uint16_t tagTemp, uint16_t duration, int16_t ambTemp);`<BR>
 It is need use additional init function for BME680 sensor configurate heat set point 0..9:<br>
 `uint8_t  point    = number of set point, what You want to use 0..9;`<br>
 `uint16_t tagTemp  = target temperature fof preheating Gas sensor (250-350);`<br>
