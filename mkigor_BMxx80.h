@@ -202,7 +202,7 @@ public:
         clv_i2cAddr  = 0x77;    //  default BME280 i2c address
         clv_codeChip = 0;       //  default code chip 0 => not found.
     }
-    void initGasPointX(uint8_t fp_point = 0, uint16_t fp_tagTemp = 300, uint16_t fp_duration = 63, int16_t fp_ambTemp = 20);
+    void initGasPointX(uint8_t fp_point = 0, uint16_t fp_tagTemp = 350, uint16_t fp_duration = 100, int16_t fp_ambTemp = 20);
     void do1Meas(void);         // mode FORCED_MODE DO 1 Measuring}
     bool isMeas(void);          // returns TRUE while bme680 is Measuring
     void begin();               // init BMx280 with default parameters FORCED mode and max measuring 

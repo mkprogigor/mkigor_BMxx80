@@ -226,7 +226,7 @@ void cl_BME280::clf_readCalibData(void) {
 	Wire.endTransmission();
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {
 		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
-		clv_cd.H2 = lv_regs[1] << 8 | lv_regs[0]; // (Wire.read() | (Wire.read() << 8));
+		clv_cd.H2 = lv_regs[1] << 8 | lv_regs[0];
 		clv_cd.H3 = lv_regs[2];
 		clv_cd.H4 = ( ( (int16_t)(int8_t)lv_regs[3] ) * 16) | (int16_t)(lv_regs[4] & 0x0F );
 		clv_cd.H5 = ( ( (int16_t)(int8_t)lv_regs[5] ) * 16) | (int16_t)(lv_regs[4]  >> 4  );
@@ -238,7 +238,6 @@ void cl_BME280::clf_readCalibData(void) {
     printf("P1-p9 = %d %d %d %d %d %d %d %d %d \n", clv_cd.P1, clv_cd.P2, clv_cd.P3, clv_cd.P4, clv_cd.P5, clv_cd.P6, clv_cd.P7, clv_cd.P8, clv_cd.P9);
     printf("H1-H6 = %d %d %d %d %d %d \n\n", clv_cd.H1, clv_cd.H2, clv_cd.H3, clv_cd.H4, clv_cd.H5, clv_cd.H6);
 #endif
-
 }
 
 //============================================
