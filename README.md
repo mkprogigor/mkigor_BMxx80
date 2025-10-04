@@ -18,16 +18,13 @@ Default setup: FORCED MODE, with x16 oversampling and x2 filter.<BR>
 
 Function => `void begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h)`<BR>
 Default setup for with Your parameters:<BR>
-mode = NOR_MODE or FOR_MODE; <BR>
-t_sb = standby (sleep) time, from SB_500US to SD_1000MS (for NORMAL mode bmp280, bme280);<BR>
-filter  =  value of filterring - FIL_OFF, FIL_x2, FIL_x4, FIL_x8, FIL_x16;<BR>
-osrs_t, osrs_p, osrs_h = oversampling value for T,P,H - OS_OFF, OS_x1, OS_x2, OS_x4, OS_x8, OS_x16.<BR>
+`mode    = NOR_MODE or FOR_MODE;`<BR>
+`t_sb    = standby (sleep) time, from SB_500US to SD_1000MS (for NORMAL mode bmp280, bme280);`<BR>
+`filter  =  value of filterring - FIL_OFF, FIL_x2, FIL_x4, FIL_x8, FIL_x16;`<BR>
+`osrs_t, osrs_p, osrs_h = oversampling value for T,P,H - OS_OFF, OS_x1, OS_x2, OS_x4, OS_x8, OS_x16.`<BR>
 
 Function => `void do1Meas(void)`<BR>
-Makes 1 measurement and goes to sleep (FORCED MODE).<BR>
-The function don't use delay or wait for result, only send command to sensor - start measuring.<BR>
-You should do delay and check moment (`isMeas()`) when measuring data will be finish.<BR>
-You can use vTaskDelay(200) for benefits of using FreeRTOS.<BR>
+Makes 1 measurement and goes to sleep (FORCED MODE). The function don't use delay or wait for result, only send command to sensor - start measuring. You should do delay and check moment (`isMeas()`) when measuring data will be finish. You can use vTaskDelay(200) for benefits of using FreeRTOS.
 Max time measuring takes about 200 mS, acording to mode, sleep time, filter and oversamlinhg value.
 But You should check it.<BR>
 
