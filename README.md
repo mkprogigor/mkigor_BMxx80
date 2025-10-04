@@ -35,6 +35,7 @@ But You can check it.<BR>
 Function => `bool isMeas(void)`<BR>
 returns TRUE while the bmp280 or bme280 IS MEASuring, otherwise FALSE.<BR>
 
+#BME280<br>
 ```c++
 struct tph_srtu {
   float temp1;
@@ -43,9 +44,19 @@ struct tph_srtu {
 };
 ```
 Function => `tph_stru readTPH(void)`<BR>
-This metod (function) DOES NOT make measurement!<BR>
-The function only reads data in one I2C request,<BR>
-decoding to value T,P,H and return it in structure variable.<BR>
+This metod (function) DOES NOT make measurement! The function only reads RAW data in one I2C request, decoding to real (compensate) value T,P,H and return it in structure variable.<BR>
+
+#BME680<>
+```c++
+struct tph_srtu {
+  float temp1;
+  float pres1;
+  float humi1;
+  float gasr1;
+};
+```
+Function => `tph_stru readTPH(void)`<BR>
+This metod (function) DOES NOT make measurement! The function only reads RAW data in one I2C request, decoding to real (compensate) value T,P,H,G and return it in structure variable.<BR>
 
 I used oficial Bosch datasheet bmp280, bme280, bme680. But datasheets have errors, I finded working code in next libs, becouse THE CODE IS THE DOCUMENTATION :-) I thanks authors for help in coding:<BR>
 https://github.com/GyverLibs/GyverBME280<BR>
