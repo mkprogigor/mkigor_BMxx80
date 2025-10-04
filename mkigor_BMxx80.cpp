@@ -228,8 +228,8 @@ void cl_BME280::clf_readCalibData(void) {
 		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
 		clv_cd.H2 = lv_regs[1] << 8 | lv_regs[0]; // (Wire.read() | (Wire.read() << 8));
 		clv_cd.H3 = lv_regs[2];
-		clv_cd.H4 = (((int16_t)lv_regs[3]) << 4) | (int16_t)(lv_regs[4] & 0x0F);
-		clv_cd.H5 = (((int16_t)lv_regs[5]) << 4) | (int16_t)((lv_regs[4] & 0xF0) >> 4);
+		clv_cd.H4 = ( ( (int16_t)(int8_t)lv_regs[3] ) * 16) | (int16_t)(lv_regs[4] & 0x0F );
+		clv_cd.H5 = ( ( (int16_t)(int8_t)lv_regs[5] ) * 16) | (int16_t)(lv_regs[4]  >> 4  );
 		clv_cd.H6 = lv_regs[6];
 	};
 #ifdef enDEBUG
@@ -351,7 +351,7 @@ void cl_BME680::clf_readCalibData(void) {
 		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
 // T1 0xE9/0xEA, T2 0x8A/0x8B, T3 0x8C
 // P1 0x8E/0x8F, P2	0x90/0x91, P3 0x92, P4 0x94/0x95, P5 0x96/0x97, P6 0x99, P7 0x98, P8 0x9C/0x9D, P9	0x9E/0x9F, P10	0xA0
-		clv_cd.T2 = ((int16_t)lv_regs[1] << 8) | lv_regs[0];	// fill struct
+		clv_cd.T2 = lv_regs[1] << 8 | lv_regs[0];	// fill struct
 		clv_cd.T3 = lv_regs[2];
 		clv_cd.P1 = lv_regs[5] << 8 | lv_regs[4];
 		clv_cd.P2 = lv_regs[7] << 8 | lv_regs[6];
@@ -379,9 +379,9 @@ void cl_BME680::clf_readCalibData(void) {
 		clv_cd.H5 = lv_regs[5];
 		clv_cd.H6 = lv_regs[6];
 		clv_cd.H7 = lv_regs[7];
-		clv_cd.T1 = ((uint16_t)lv_regs[9] << 8) | lv_regs[8];
+		clv_cd.T1 = lv_regs[9] << 8 | lv_regs[8];
 // G1 0xED, G2 0xEB/0xEC, G3 0xEE, res_heat_range 0x02 <5:4>, res_heat_val 0x00
-		clv_cd.G2 = ((int16_t)lv_regs[11] << 8) | lv_regs[10];
+		clv_cd.G2 = lv_regs[11] << 8 | lv_regs[10];
 		clv_cd.G1 = lv_regs[12];
 		clv_cd.G3 = lv_regs[13];
 	};
@@ -491,7 +491,7 @@ tphg_stru cl_BME680::readTPHG(void) {
 	adc_H = (uint32_t)0 | (lv_regs[6] << 8) | lv_regs[7];
 	adc_G = (uint32_t)0 | ((uint32_t)lv_regs[11] << 2) | (uint32_t)(lv_regs[12] >> 6);
 	uint8_t gas_range = lv_regs[12] & 0x0F;
-	uint8_t range_switching_error = (cl_BME680::readReg(0x04) >> 4);
+	uint8_t range_switching_error = ( (int8_t)(cl_BME680::readReg(0x04) & 0xF0) / 16 );
 #ifdef enDEBUG
 	uint8_t lv_status = cl_BME680::readReg(0x1D);
 	if (lv_status & 0b10000000) Serial.println("new_data_0 = 1, moment when new measuring data have been arrive.");
