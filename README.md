@@ -46,20 +46,20 @@ Function => `tph_stru readTPH(void)`<BR>
 This metod (function) DOES NOT make measurement! The function only reads RAW data in one I2C request, decoding to real (compensate) value T,P,H and return it in structure variable.<BR>
 
 # BME680
-Function => `void begin()`<BR>
+Fn => `void begin()`<BR>
 Default init bme680: FORCED MODE, with x16 oversampling T P H and x2 filter.<BR>
-Function => `void begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h)`<BR>
+Fn => `void begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h)`<BR>
 Init bme680 with Your parameters:<BR>
-filter                  = value of filterring;<BR>
-osrs_t, osrs_p, osrs_h  = oversampling value for T,P,H;<BR>
-Function => `void initGasPointX(uint8_t fp_point = 0, uint16_t fp_tagTemp = 300, uint16_t fp_duration = 63, int16_t fp_ambTemp = 20);`<BR>
+`filter                  = value of filterring;`<BR>
+`osrs_t, osrs_p, osrs_h  = oversampling value for T,P,H.`<BR>
+Fn => `void initGasPointX(uint8_t fp_point = 0, uint16_t fp_tagTemp = 300, uint16_t fp_duration = 63, int16_t fp_ambTemp = 20);`<BR>
 It is need use additional init function for BME680 sensor configurate heat set point 0..9:<br>
-`uint8_t  fp_point   = number of set point, what You want to use 0..9;`<br>
+`uint8_t  fp_point    = number of set point, what You want to use 0..9;`<br>
 `uint16_t fp_tagTemp  = taget temperature fof preheating Gas sensor;`<br>
 `uint16_t fp_duration = time duration of preheating in ms;`<br>
 `int16_t  fp_ambTemp  = ambient temperature.`<br>
 ```c++
-struct tph_srtu {
+struct tphg_srtu {
   float temp1;
   float pres1;
   float humi1;
