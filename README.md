@@ -53,11 +53,11 @@ Init bme680 with Your parameters:<BR>
 filter                  = value of filterring;<BR>
 osrs_t, osrs_p, osrs_h  = oversampling value for T,P,H;<BR>
 Function => `void initGasPointX(uint8_t fp_point = 0, uint16_t fp_tagTemp = 300, uint16_t fp_duration = 63, int16_t fp_ambTemp = 20);`<BR>
-it is need use additional init function for BME680 sensor tonfigurate heat set point 0..9:<br>
-uint8_t  fp_point    = number of set point, what You want to use 0..9;<br>
-uint16_t fp_tagTemp  = taget temperature fof preheating Gas sensor;<br>
-uint16_t fp_duration = time duration of preheating in ms;<br>
-int16_t  fp_ambTemp  = ambient temperature.<br>
+It is need use additional init function for BME680 sensor configurate heat set point 0..9:<br>
+`uint8_t  fp_point   = number of set point, what You want to use 0..9;`<br>
+`uint16_t fp_tagTemp  = taget temperature fof preheating Gas sensor;`<br>
+`uint16_t fp_duration = time duration of preheating in ms;`<br>
+`int16_t  fp_ambTemp  = ambient temperature.`<br>
 ```c++
 struct tph_srtu {
   float temp1;
@@ -67,7 +67,7 @@ struct tph_srtu {
 };
 ```
 Function => `tph_stru readTPHG(void)`<BR>
-This metod (function) DOES NOT make measurement! The function only reads RAW data in one I2C request, decoding to real (compensate) value T,P,H,G and return it in structure variable.<BR>
+This metod DOES NOT make measurement! The function only reads RAW data in one I2C request, decoding to real (compensate) value T,P,H,G and return it in structure variable.<BR>
 
 I used oficial Bosch datasheet bmp280, bme280, bme680. But datasheets have errors, I finded working code in next libs, becouse THE CODE IS THE DOCUMENTATION :-) I thanks authors for help in coding:<BR>
 https://github.com/GyverLibs/GyverBME280<BR>
