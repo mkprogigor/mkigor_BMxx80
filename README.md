@@ -50,10 +50,13 @@ decoding to value T,P,H and return it in structure variable.<BR>
 I used oficial Bosch datasheet bmp280, bme280 and examples (thanks) for making this lib:<BR>
 https://github.com/GyverLibs/GyverBME280<BR>
 https://github.com/farmerkeith/BMP280-library/<BR>
-https://github.com/farmerkeith/I2CScanner/<BR>
+https://github.com/boschsensortec/BME280_SensorAPI<BR>
 Also thanks for help in bme680:<br>
 https://github.com/Zanduino/BME680<br>
 https://github.com/kriswiner/BME680<br>
+https://github.com/boschsensortec/BME68x_SensorAPI<BR>
+https://github.com/adafruit/Adafruit_BME680<BR>
 
+<BR>
 Example of use this lib in my project of "Easy DIY weather station"<BR>
 https://github.com/mkprogigor/mkigor_esp32c3_ws<BR>
