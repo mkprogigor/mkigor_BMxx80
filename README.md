@@ -1,8 +1,7 @@
-# mkigor_BMxx80
+# mkigor_BMxx80 (BMP280, BME280, BME680)
 Lightweight and short library for Bosch sensor BME280 and BMP280 (maybe BME680) for Arduino.
-It is not pretend to the most optimal code, but it is example of learning C++ OOP for programing MCU.
-Classes, Encapsulating metods (functions), Inheritance classes.
-It has two classes: cl_BMP280 and cl_BME280. Class BME280 inherit BMP280.
+It is not pretend to the most optimal code, but it is example of learning C++ OOP for programing MCU: classes, encapsulating metods (functions), inheritance classes.
+Classes: cl_BMP280, BME280, BME680. ClassES BME280, BME680 inherit from BMP280.
 
 By default, lib focused on one time measuring (forced mode, but normal available too) 
 with max oversampling x16 of T,P,H, and filter x16. It's suitable for weather station.
