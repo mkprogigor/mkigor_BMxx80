@@ -4,8 +4,7 @@ It is not pretend to the most optimal code, but it is example of learning C++ OO
 Classes cl_BME280, cl_BME680 inherit from cl_BMP280.
 
 ## BMP280, BME280, BME680
-By default, lib focused on one time measuring (forced mode, but normal available too) 
-with max oversampling x16 of T,P,H, filter x2. It's suitable for weather station.
+By default, lib focused on one time measuring (forced mode, but normal available too).<BR>
 
 Function (metod) => `uint8_t check(uint8_t lv_i2caddr)`<BR>
 It must be call 1st, because it checks presence of sensor!<BR>
@@ -15,7 +14,7 @@ Possible chip codes are: 0x58=>BMP280, 0x60=>BME280, 0x61=>BME680.<BR>
 Note: i2c address 0x76, 0x77 possible for BMP280 or BME280 or BME680 - pl, check it.<BR>
 
 Function => `void begin()`<BR>
-Default setup: FORCED MODE, with x16 oversampling and x2 filter.<BR>
+Default setup: FORCED MODE, with x16 oversampling and x2 filter. It's suitable for weather station.<BR>
 
 Function => `void begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h)`<BR>
 Default setup for with Your parameters:<BR>
