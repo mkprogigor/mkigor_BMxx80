@@ -407,10 +407,18 @@ bool cl_BME680::isMeas(void) {	// returns TRUE while bme680 is Measuring
 	return (bool)((cl_BME680::readReg(0x1D) & 0x60));
 }
 
+/*	@brief Read calibration data and Init sensor with default valiues
+	filter value: cd_FIL_x2 and oversampling value T P H : cd_OS_x16	*/
 void cl_BME680::begin() {
 	cl_BME680::begin(cd_FIL_x2, cd_OS_x16, cd_OS_x16, cd_OS_x16); // default: filter x2, oversampling TPH x16
 }
 
+/*	@brief Read calibration data and Init sensor with
+	@param filter	filter value: cd_FIL_OFF .. cd_FIL_x128
+	@param osrs_t	oversampling value temperature: cd_OS_OFF..cd_OS_x16
+	@param osrs_p	oversampling value pressure: cd_OS_OFF..cd_OS_x16
+	@param osrs_h	oversampling value humidity: cd_OS_OFF..cd_OS_x16
+	@returns void	*/
 void cl_BME680::begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h) {
 	// Read calibration coefficients (data) to clas private (local) variable clv_cd
 	cl_BME680::clf_readCalibData();
@@ -422,6 +430,12 @@ Filtering value (cd_FIL_x..) to Config register address 0x75 bits <4:2>		*/
 	cl_BME680::writeReg(0x75, filter << 2);
 };    
 
+/*	@brief Set heating point 0..9 with
+	@param lp_setPoint	number of setpoint 0..9
+	@param lp_tagTemp	target temperature of heating, C 
+	@param lp_duration	time of heating, msec
+	@param lp_ambTemp	ambient temperature of sensor, C
+	@returns void	*/
 void cl_BME680::initGasPointX(uint8_t lp_setPoint, uint16_t lp_tagTemp, uint16_t lp_duration, int16_t lp_ambTemp) {
 	//  Up to 10 different hot plate temperature set points can be configured 
 	//	by setting the registers res_heat_X and gas_wait_X, where X = 0…9.
@@ -429,6 +443,10 @@ void cl_BME680::initGasPointX(uint8_t lp_setPoint, uint16_t lp_tagTemp, uint16_t
 	//  Hence, the user first needs to convert the target temperature 
 	//	into a device specific target resistance (res_heat_X))
 	//  before writing the resulting register code into the sensor memory map.
+
+	//	Res_heat_X	5Ah-63h,
+	//  Gas_wait_X	64h-6Dh.
+	//  Idac_heat_X	50h-59h will calc by BME680 itself
 
 	//	Step 4 - Enable GAS conversion. run_gas =1 (set bit <4> address reg 0x71) and 
 	//	Step 5 - Select index of heater set-point 0-9. nb_conv = 0 (bits <3:0> address reg 0x71)
@@ -472,6 +490,8 @@ void cl_BME680::initGasPointX(uint8_t lp_setPoint, uint16_t lp_tagTemp, uint16_t
 	cl_BME680::writeReg(0x5A + lp_setPoint, res_heat_X);
 }
 
+/*	@brief Read raw data (adc_ P T H G) & calc it to compensate value
+	@returns structure T P H G	*/
 tphg_stru cl_BME680::readTPHG(void) {
 	tphg_stru lv_tphg = { 0, 0, 0, 0 };
 	uint32_t  adc_T, adc_P, adc_H, adc_G;

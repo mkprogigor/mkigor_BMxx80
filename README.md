@@ -31,7 +31,7 @@ But You should check it.<BR>
 Function => `bool isMeas(void)`<BR>
 returns TRUE while sensor IS MEASuring, otherwise FALSE.<BR>
 
-# BME280
+## BME280
 ```c++
 struct tph_srtu {
   float temp1;
@@ -42,7 +42,7 @@ struct tph_srtu {
 Function => `tph_stru readTPH(void)`<BR>
 This metod (function) DOES NOT make measurement! The function only reads RAW data in one I2C request, decoding to real (compensate) value T,P,H and return it in structure variable.<BR>
 
-# BME680
+## BME680
 Fn => `void begin()`<BR>
 Default init bme680: FORCED MODE, with x16 oversampling T P H and x2 filter.<BR>
 Fn => `void begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h)`<BR>
