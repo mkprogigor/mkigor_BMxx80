@@ -67,7 +67,7 @@ struct tphg_srtu {
   float gasr1;
 };
 ```
-
+<BR>
 I used oficial Bosch datasheet bmp280, bme280, bme680. But datasheets have errors, I finded working code in next libs, becouse THE CODE IS THE DOCUMENTATION :-) I thanks authors for help in coding:<BR>
 https://github.com/GyverLibs/GyverBME280<BR>
 https://github.com/farmerkeith/BMP280-library/<BR>
@@ -78,6 +78,6 @@ https://github.com/kriswiner/BME680<br>
 https://github.com/boschsensortec/BME68x_SensorAPI<BR>
 https://github.com/adafruit/Adafruit_BME680<BR>
 
-<BR>
+
 Example of use this lib in my project of "Easy DIY weather station"<BR>
 https://github.com/mkprogigor/mkigor_esp32c3_ws<BR>
