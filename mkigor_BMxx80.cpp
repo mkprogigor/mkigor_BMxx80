@@ -49,9 +49,10 @@ bool cl_BMP280::writeReg(uint8_t address, uint8_t data) {
 }
 
 /*	@brief	Check conection with sensor,
+	fn return chip codes: 0x58=BMP280, 0x60=BME280, 0x61=BME680.
+	i2c address 0x76, 0x77 possible for BMP280 or BME280 or BME680, note: CHECK IT ! 
 	@return	Chip_code is senor is present, if NO return 0	*/
 uint8_t cl_BMP280::check(uint8_t lv_i2caddr) {
-	
 	clv_i2cAddr = lv_i2caddr;
 	Wire.begin();
 	uint8_t lv_error;
@@ -69,8 +70,6 @@ uint8_t cl_BMP280::check(uint8_t lv_i2caddr) {
 		}
     }
     return 0;
-	/*  fn return chip codes: 0x58=BMP280, 0x60=BME280, 0x61=BME680.
-	i2c address 0x76, 0x77 possible for BMP280 or BME280 or BME680, note: CHECK IT ! */
 }
 
 /*	@brief	Software reset of bmp280, bme280, bme680. 
@@ -146,7 +145,6 @@ void cl_BMP280::begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t
 /*	@brief Read raw data (adc_ P T) & calc it to compensate value
 	@returns compensate value of T P in structure var		*/
 tp_stru cl_BMP280::readTP(void) {
-#define uint32_t uint32_t
 	tp_stru lv_tp = { 0, 0 };
 	int32_t  adc_T;
 	uint32_t adc_P;
@@ -156,23 +154,20 @@ tp_stru cl_BMP280::readTP(void) {
 	Wire.beginTransmission(clv_i2cAddr);   // addr of first byte raw data Humi
 	Wire.write(0xF7);
 	if (Wire.endTransmission() != 0) return lv_tp;	// something wrong with i2c connection and return 0
-
 	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) 
 		for (uint8_t i = 0; i < 6; i++) lv_regs[i] = Wire.read();
 	adc_T = ((lv_regs[3] << 16) | (lv_regs[4] << 8) | lv_regs[5]) >> 4;
 	adc_P = ((lv_regs[0] << 16) | (lv_regs[1] << 8) | lv_regs[2]) >> 4;
 
-	// t_fine carries fine temperature as global value
 	int32_t lv_var1, lv_var2, t_fine;
 	if (adc_T == 0x800000) {
 		lv_tp.temp1 = 0;	// if the temperature module has been disabled return '0'
 	}
 	else {
-		// adc_T >>= 4;
 		lv_var1 = ((((adc_T >> 3) - ((int32_t)clv_cd.T1 << 1))) * ((int32_t)clv_cd.T2)) >> 11;
 		lv_var2 = (((((adc_T >> 4) - ((int32_t)clv_cd.T1)) * ((adc_T >> 4) - ((int32_t)clv_cd.T1))) >> 12) * 
 			((int32_t)clv_cd.T3)) >> 14;
-		t_fine = lv_var1 + lv_var2;
+		t_fine = lv_var1 + lv_var2;		// t_fine carries fine temperature as global value
 		lv_tp.temp1 = ((float)((t_fine * 5 + 128) >> 8)) / 100;
 	}
 
@@ -181,7 +176,6 @@ tp_stru cl_BMP280::readTP(void) {
 		lv_tp.pres1 = 0;	// If the pressure module has been disabled return '0'
 	}
 	else {
-		// adc_P >>= 4;	// Start pressure converting
 		var1 = ((int64_t)t_fine) - 128000;
 		var2 = var1 * var1 * (int64_t)clv_cd.P6;
 		var2 = var2 + ((var1 * (int64_t)clv_cd.P5) << 17);
