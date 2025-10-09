@@ -1,15 +1,9 @@
 /************************************************************************************
-Library for test and use Bosch i2c sensor bme280, bmp280
-by Igor Mkprog, mkprogigor@gmail.com
+C++ library Arduino IDE framework for Bosch sensors: BMP280, BME280, BME680, via i2c.
+V1.1 from 10.10.2025 by Igor Mkprog, mkprogigor@gmail.com
 
-use examples:
-https://github.com/AlexGyver/GyverLibs/blob/master/GyverBME280/
-https://github.com/farmerkeith/BMP280-library/
-https://github.com/farmerkeith/I2CScanner/
-
-V1.0 from 30.08.2025
-
-Glossary, abbreviations used in the module, prefix and suffix:
+Glossary, abbreviations used in the module. Name of metods (functions) dont use symbol '_',
+only small or capital letter. Symbol '_' divide name in: prefix _ name _ suffix:
 gv_*    -   Global Variable;
 lv_*    -   Local Variable (live inside statement);
 cl_*    -   CLass;
@@ -18,12 +12,9 @@ cgv_*   -   Class public (Global) member (Variable);
 clv_*   -   Class private (Local) member (Variable);
 cgf_*   -   Class public (Global) metod (Function), not need, no usefull, becouse we see parenthesis => ();
 clf_*   -   Class private (Local) metod (Function);
-
 *_stru  -   [or *_stru_t] suffix, as usual, point the type.
-
-Metods (functions) dont use symbol '_', only small or capital letters (ex.: onlySmallOrCapitalLetters)
-***********************************************************************************
-*/
+lp_		-	in function, local parameter
+************************************************************************************/
 #include <Arduino.h>
 #include <Wire.h>
 
