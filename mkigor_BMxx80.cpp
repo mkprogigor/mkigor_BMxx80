@@ -3,7 +3,8 @@ Library for test and use Bosch i2c sensor bme280, bmp280
 by Igor Mkprog, mkprogigor@gmail.com
 V1.1 from 10.10.2025
 
-Glossary, abbreviations used in the module, prefix and suffix:
+Glossary, abbreviations used in the module. Name of metods (functions) dont use symbol '_',
+only small or capital letter. Symbol '_' divide name in: prefix _ name _ suffix:
 gv_*    -   Global Variable;
 lv_*    -   Local Variable (live inside statement);
 cl_*    -   CLass;
@@ -14,8 +15,6 @@ cgf_*   -   Class public (Global) metod (Function), not need, no usefull, becous
 clf_*   -   Class private (Local) metod (Function);
 *_stru  -   [or *_stru_t] suffix, as usual, point the type.
 lp_		-	in function, local parameter
-Name of metods (functions) dont use symbol '_', only small or capital letter.
-symbol '_' divide name in: prefix _ name _ suffix.
 ************************************************************************************/
 #include <mkigor_BMxx80.h>
 #include <Arduino.h>
