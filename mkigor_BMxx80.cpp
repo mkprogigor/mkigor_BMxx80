@@ -26,12 +26,15 @@ Metods (functions) dont use symbol '_', only small or capital lett
 #include <mkigor_BMxx80.h>
 #include <Arduino.h>
 
-// #define enDEBUG
+// #define enDEBUG		//	if need addition print info, uncomment this string
 
 //============================================
 //	common public metod (function) for cl_BMP280 and cl_BME280 and cl_BME680
 //============================================
-uint8_t cl_BMP280::readReg(uint8_t address) {    // read register 1 byte from bmp280 or bme280 
+/*	@brief	Read 1 byte from register with address,
+	@param	address is address of register to read
+	@return	1 byteb read or 0 if operation not success	*/
+uint8_t cl_BMP280::readReg(uint8_t address) {
 	Wire.beginTransmission(clv_i2cAddr);
 	Wire.write(address);
 	if (Wire.endTransmission() != 0) return 0;
@@ -39,7 +42,11 @@ uint8_t cl_BMP280::readReg(uint8_t address) {    // read register 1 byte from bm
 	else return 0;
 }
 
-bool cl_BMP280::writeReg(uint8_t address, uint8_t data) {   //  write 1 byte to bme280 register
+/*	@brief	Write 1 byte to register with address,
+	@param	address is address of register to write
+	@param	data is byte to write	
+	@return	TRUE if operation is success, otherwise FALSE	*/
+bool cl_BMP280::writeReg(uint8_t address, uint8_t data) {
 	Wire.beginTransmission(clv_i2cAddr);
 	Wire.write(address);
 	Wire.write(data);
@@ -47,8 +54,10 @@ bool cl_BMP280::writeReg(uint8_t address, uint8_t data) {   //  write 1 byte to 
 	else return false;
 }
 
+/*	@brief	Check conection with sensor,
+	@return	Chip_code is senor is present, if NO return 0	*/
 uint8_t cl_BMP280::check(uint8_t lv_i2caddr) {
-	// check is it conected bm(e,p)280, if YES ret chip_code, if NO ret 0
+	
 	clv_i2cAddr = lv_i2caddr;
 	Wire.begin();
 	uint8_t lv_error;
@@ -70,7 +79,9 @@ uint8_t cl_BMP280::check(uint8_t lv_i2caddr) {
 	i2c address 0x76, 0x77 possible for BMP280 or BME280 or BME680, note: CHECK IT ! */
 }
 
-bool cl_BMP280::reset(void) {     //  software reset of bmp280, bme280, bme280. Return TRUE if write op. is OK
+/*	@brief	Software reset of bmp280, bme280, bme680. 
+	@return TRUE if write operation is OK	*/
+bool cl_BMP280::reset(void) {
 	if (cl_BMP280::writeReg(0x0E, 0xB6)) return true;
     else return false;
 }
@@ -90,17 +101,17 @@ bool cl_BMP280::isMeas(void) {	// returns TRUE while bme280 is Measuring
 //	specific  metods (funcs) for cl_BMP280
 //    private metods (funcs)
 //============================================
+/*	@brief	Read Calibration Data for BMP280 in clv_cd var structure	*/
 void cl_BMP280::clf_readCalibData(void) {
 	uint8_t lv_nregs = 24;
 	uint8_t lv_regs[lv_nregs];		// temporary array for reading registers
 
-	Wire.beginTransmission(clv_i2cAddr);   // first part request
+	Wire.beginTransmission(clv_i2cAddr);
 	Wire.write(0x88);
 	if (Wire.endTransmission() != 0) return;
-	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {    // reading 26 regs
-		for (uint8_t i = 0; i < 25; i++) lv_regs[i] = Wire.read();
-
-		clv_cd.T1 = lv_regs[1] << 8 | lv_regs[0];   // form struct
+	if (Wire.requestFrom(clv_i2cAddr, lv_nregs) == lv_nregs) {    // reading 24 regs
+		for (uint8_t i = 0; i < lv_nregs; i++) lv_regs[i] = Wire.read();
+		clv_cd.T1 = lv_regs[1] << 8 | lv_regs[0];
 		clv_cd.T2 = lv_regs[3] << 8 | lv_regs[2];
 		clv_cd.T3 = lv_regs[5] << 8 | lv_regs[4];
 		clv_cd.P1 = lv_regs[7] << 8 | lv_regs[6];
@@ -118,20 +129,28 @@ void cl_BMP280::clf_readCalibData(void) {
 //============================================
 //    public metods (funcs) for BMP280
 //============================================
-void cl_BMP280::begin() {	// defaults are 16x; Normal mode; 0.5ms, no filter, I2C
-	begin(cd_FOR_MODE, cd_SB_500MS, cd_FIL_x16, cd_OS_x16, cd_OS_x16); // Forse mode, sleep 500ms, filter x16, t p h x16
+/*	@brief Read calibration data and Init sensor with default
+	force mode, filter value: cd_FIL_x2, stand by time 500ms, oversampling value T P : cd_OS_x16	*/
+void cl_BMP280::begin() {
+	begin(cd_FOR_MODE, cd_SB_500MS, cd_FIL_x16, cd_OS_x16, cd_OS_x16);
   }
 
+/*	@brief Read calibration data and Init sensor with
+	@param mode		cd_FOR_MODE or cd_NOR_MODE
+	@param t_sb		time standby in cd_NOR_MODE
+	@param filter	filter value: cd_FIL_OFF .. cd_FIL_x128
+	@param osrs_t	oversampling value temperature: cd_OS_OFF..cd_OS_x16
+	@param osrs_p	oversampling value pressure: cd_OS_OFF..cd_OS_x16	*/
 void cl_BMP280::begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p) {	// init bme280
 	cl_BMP280::clf_readCalibData();
-
 	uint8_t lv_reg_0xF4 = (osrs_t<<5) | (osrs_p<<2) | mode;
 	uint8_t lv_reg_0xF5 = (t_sb << 5) | (filter << 2) | 0x00;
-	
 	cl_BMP280::writeReg(0xF4, lv_reg_0xF4);
 	cl_BMP280::writeReg(0xF5, lv_reg_0xF5);
 };    
 
+/*	@brief Read raw data (adc_ P T) & calc it to compensate value
+	@returns compensate value of T P in structure var		*/
 tp_stru cl_BMP280::readTP(void) {
 #define uint32_t uint32_t
 	tp_stru lv_tp = { 0, 0 };
@@ -196,6 +215,7 @@ tp_stru cl_BMP280::readTP(void) {
 //============================================
 //	specific private metods (funcs) for cl_BME280
 //============================================
+/*	@brief	Read Calibration Data for BME280 in clv_cd var structure	*/
 void cl_BME280::clf_readCalibData(void) {
 	uint8_t lv_nregs = 26;
 	uint8_t lv_regs[lv_nregs];		// temporary array for reading registers
@@ -243,23 +263,32 @@ void cl_BME280::clf_readCalibData(void) {
 //============================================
 //    public metods (funcs) for cl_BME280
 //============================================
-void cl_BME280::begin() {	// defaults are 16x; Normal mode; 0.5ms, no filter, I2C
+/*	@brief Read calibration data and Init sensor with default
+	force mode, filter value: cd_FIL_x2, stand by time 500ms, oversampling value T P H : cd_OS_x16	*/
+void cl_BME280::begin() {
 	begin(cd_FOR_MODE, cd_SB_500MS, cd_FIL_x16, cd_OS_x16, cd_OS_x16, cd_OS_x16); // Forse mode, sleep 500ms, filter x16, t p h x16
 }
 
+/*	@brief Read calibration data and Init sensor with
+	@param mode		cd_FOR_MODE or cd_NOR_MODE
+	@param t_sb		time standby in cd_NOR_MODE
+	@param filter	filter value: cd_FIL_OFF .. cd_FIL_x128
+	@param osrs_t	oversampling value temperature: cd_OS_OFF..cd_OS_x16
+	@param osrs_p	oversampling value pressure: cd_OS_OFF..cd_OS_x16
+	@param osrs_h	oversampling value humidity: cd_OS_OFF..cd_OS_x16
+	@returns void	*/
 void cl_BME280::begin(uint8_t mode, uint8_t t_sb, uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h) {	// init bme280
-//	read calibration data coefficient
 	cl_BME280::clf_readCalibData();
-//	write settings to config control registers 0xF2, 0xF4, 0xF5
-	cl_BME280::writeReg(0xF2, osrs_h);
+	cl_BME280::writeReg(0xF2, osrs_h);		//	write settings to config control registers 0xF2, 0xF4, 0xF5
 	cl_BME280::writeReg(0xF4, ((osrs_t<<5) | (osrs_p<<2) | mode) );
 	cl_BME280::writeReg(0xF5, ((t_sb << 5) | (filter << 2) | 0) );
 };    
 
+/*	@brief Read raw data (adc_ P T H) & calc it to compensate value
+	@returns compensate value of T P H in structure var		*/
 tph_stru cl_BME280::readTPH(void) {
 	tph_stru lv_tph = { 0, 0, 0 };
 	int32_t  adc_T, adc_H, adc_P, var1, var2, var3, var4, var5, t_fine;
-	// uint32_t adc_P;
 
 	uint8_t lv_nregs = 8;
 	uint8_t lv_regs[lv_nregs];		//	local temp array for store registers
@@ -340,6 +369,7 @@ tph_stru cl_BME280::readTPH(void) {
 //============================================
 //	specific private metods (funcs) for cl_BME680
 //============================================
+/*	@brief Read Calibration Data to structure variable clv_cd */
 void cl_BME680::clf_readCalibData(void) {
 	uint8_t lv_nregs = 23;
 	uint8_t lv_regs[lv_nregs];		// temporary array for reading registers
@@ -395,19 +425,22 @@ void cl_BME680::clf_readCalibData(void) {
 
 
 //============================================
-//    public metods (funcs) for cl_BME680
+//  public metods (funcs) for cl_BME680
 //	Bosch Document rev.: 1.9, Date: February 2024, Document N: BST-BME680-DS001-09
 //============================================
+/*	@brief Send sensor command to Start Measuring 	*/
 void cl_BME680::do1Meas(void) {    // mode FORCED_MODE DO 1 Measuring
 	cl_BME680::writeReg(0x74, cl_BME680::readReg(0x74) | 0x01);
 }
 
-bool cl_BME680::isMeas(void) {	// returns TRUE while bme680 is Measuring
+/*	@brief Test if sensor is Measuring 
+	@return TRUE while bme680 is Measuring of FALSE when it is sleep	*/
+bool cl_BME680::isMeas(void) {
 	// Status reg 0x1D, check the bit <6> gas measuring = 1 and the bit <5> data measuring = 1
 	return (bool)((cl_BME680::readReg(0x1D) & 0x60));
 }
 
-/*	@brief Read calibration data and Init sensor with default valiues
+/*	@brief Read calibration data and Init sensor with default
 	filter value: cd_FIL_x2 and oversampling value T P H : cd_OS_x16	*/
 void cl_BME680::begin() {
 	cl_BME680::begin(cd_FIL_x2, cd_OS_x16, cd_OS_x16, cd_OS_x16); // default: filter x2, oversampling TPH x16
@@ -434,8 +467,7 @@ Filtering value (cd_FIL_x..) to Config register address 0x75 bits <4:2>		*/
 	@param lp_setPoint	number of setpoint 0..9
 	@param lp_tagTemp	target temperature of heating, C 
 	@param lp_duration	time of heating, msec
-	@param lp_ambTemp	ambient temperature of sensor, C
-	@returns void	*/
+	@param lp_ambTemp	ambient temperature of sensor, C	*/
 void cl_BME680::initGasPointX(uint8_t lp_setPoint, uint16_t lp_tagTemp, uint16_t lp_duration, int16_t lp_ambTemp) {
 	//  Up to 10 different hot plate temperature set points can be configured 
 	//	by setting the registers res_heat_X and gas_wait_X, where X = 0…9.
