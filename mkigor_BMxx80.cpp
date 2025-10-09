@@ -1,7 +1,6 @@
 /************************************************************************************
-Library for test and use Bosch i2c sensor bme280, bmp280
-by Igor Mkprog, mkprogigor@gmail.com
-V1.1 from 10.10.2025
+C++ library Arduino IDE framework for Bosch sensors: BMP280, BME280, BME680, via i2c.
+V1.1 from 10.10.2025 by Igor Mkprog, mkprogigor@gmail.com
 
 Glossary, abbreviations used in the module. Name of metods (functions) dont use symbol '_',
 only small or capital letter. Symbol '_' divide name in: prefix _ name _ suffix:
