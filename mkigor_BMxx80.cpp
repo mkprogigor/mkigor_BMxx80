@@ -77,13 +77,16 @@ bool cl_BMP280::reset(void) {
     else return false;
 }
 
-void cl_BMP280::do1Meas(void) {    // mode FORCED_MODE DO 1 Measuring
+/*	@brief	Send to sensor command Start Measuring (in FORCED mode)	*/
+void cl_BMP280::do1Meas(void) {
 	uint8_t lv_reg_0xF4 = cl_BMP280::readReg(0xF4);
 	cl_BMP280::writeReg(0xF4, ((lv_reg_0xF4 & 0xFC) | 0x01));
 }
 
-bool cl_BMP280::isMeas(void) {	// returns TRUE while bme280 is Measuring								
-	return (bool)((cl_BMP280::readReg(0xF3) & 0x08) >> 3);  	 // read status register & mask bit "measuring"
+/*	@brief Test if sensor is Measuring 
+	@return TRUE while bmp280 is Measuring of FALSE when it is sleep	*/
+bool cl_BMP280::isMeas(void) {								
+	return (bool)((cl_BMP280::readReg(0xF3) & 0x08) >> 3);
 }
 
 
@@ -439,8 +442,7 @@ void cl_BME680::begin() {
 	@param osrs_h	oversampling value humidity: cd_OS_OFF..cd_OS_x16
 	@returns void	*/
 void cl_BME680::begin(uint8_t filter, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h) {
-	// Read calibration coefficients (data) to clas private (local) variable clv_cd
-	cl_BME680::clf_readCalibData();
+	cl_BME680::clf_readCalibData();	// Read calibration coefficients (data) to clas private (local) variable clv_cd
 /*	Select mode, oversampling and filtering = Step 1, 2, 3. (3.2.2 Sensor configuration flow, p.16)
 osrs_h bit <2:0> regs 0x72, osrs_t bit <7:5> regs 0x74, osrs_p bit <4:2> regs 0x72, mode bit <1:0>
 Filtering value (cd_FIL_x..) to Config register address 0x75 bits <4:2>		*/
