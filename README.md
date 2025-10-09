@@ -3,6 +3,7 @@ Lightweight and short library for Bosch sensor BME280, BMP280, BME680 for Arduin
 It is not pretend to the most optimal code, but it is example of learning C++ OOP for programing MCU: classes, encapsulating metods (functions), inheritance classes.
 Classes cl_BME280, cl_BME680 inherit from cl_BMP280.
 
+## BMP280
 By default, lib focused on one time measuring (forced mode, but normal available too) 
 with max oversampling x16 of T,P,H, filter x2. It's suitable for weather station.
 
