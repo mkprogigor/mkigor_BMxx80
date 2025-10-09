@@ -3,7 +3,7 @@ Lightweight and short library for Bosch sensor BME280, BMP280, BME680 for Arduin
 It is not pretend to the most optimal code, but it is example of learning C++ OOP for programing MCU: classes, encapsulating metods (functions), inheritance classes.
 Classes cl_BME280, cl_BME680 inherit from cl_BMP280.
 
-## BMP280
+## BMP280, BME280, BME680
 By default, lib focused on one time measuring (forced mode, but normal available too) 
 with max oversampling x16 of T,P,H, filter x2. It's suitable for weather station.
 
@@ -33,6 +33,8 @@ Function => `bool isMeas(void)`<BR>
 returns TRUE while sensor IS MEASuring, otherwise FALSE.<BR>
 
 ## BME280
+Function => `tph_stru readTPH(void)`<BR>
+This metod (function) DOES NOT make measurement! The function only reads RAW data in one I2C request, decoding to real (compensate) value T,P,H and return it in structure variable.<BR>
 ```c++
 struct tph_srtu {
   float temp1;
@@ -40,9 +42,6 @@ struct tph_srtu {
   float humi1;
 };
 ```
-Function => `tph_stru readTPH(void)`<BR>
-This metod (function) DOES NOT make measurement! The function only reads RAW data in one I2C request, decoding to real (compensate) value T,P,H and return it in structure variable.<BR>
-
 ## BME680
 Fn => `void begin()`<BR>
 Default init bme680: FORCED MODE, with x16 oversampling T P H and x2 filter.<BR>
