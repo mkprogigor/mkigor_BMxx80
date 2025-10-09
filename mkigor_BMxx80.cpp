@@ -21,7 +21,8 @@ lp_		-	in function, local parameter
 // #define enDEBUG		//	if need addition print info, uncomment this string
 
 //============================================
-//	common public metod (function) for cl_BMP280 and cl_BME280 and cl_BME680
+//	BMP280, BME280, BME680
+//	cl_BMP280, cl_BME280, cl_BME680 common public metod (function)
 //============================================
 /*	@brief	Read 1 byte from register with address,
 	@param	address is address of register to read
@@ -92,8 +93,8 @@ bool cl_BMP280::isMeas(void) {
 
 
 //============================================
-//	specific  metods (funcs) for cl_BMP280
-//    private metods (funcs)
+//	BMP280
+//	cl_BMP280, specific private metods (funcs)
 //============================================
 /*	@brief	Read Calibration Data for BMP280 in clv_cd var structure	*/
 void cl_BMP280::clf_readCalibData(void) {
@@ -121,7 +122,7 @@ void cl_BMP280::clf_readCalibData(void) {
 }
 
 //============================================
-//    public metods (funcs) for BMP280
+//	cl_BMP280, public metods (funcs)
 //============================================
 /*	@brief Read calibration data and Init sensor with default
 	force mode, filter value: cd_FIL_x2, stand by time 500ms, oversampling value T P : cd_OS_x16	*/
@@ -202,7 +203,8 @@ tp_stru cl_BMP280::readTP(void) {
 
 
 //============================================
-//	specific private metods (funcs) for cl_BME280
+//	BME280,
+//	cl_BME280, specific private metods (funcs)
 //============================================
 /*	@brief	Read Calibration Data for BME280 in clv_cd var structure	*/
 void cl_BME280::clf_readCalibData(void) {
@@ -250,7 +252,7 @@ void cl_BME280::clf_readCalibData(void) {
 }
 
 //============================================
-//    public metods (funcs) for cl_BME280
+//	cl_BME280, public metods (funcs)
 //============================================
 /*	@brief Read calibration data and Init sensor with default
 	force mode, filter value: cd_FIL_x2, stand by time 500ms, oversampling value T P H : cd_OS_x16	*/
@@ -355,8 +357,10 @@ tph_stru cl_BME280::readTPH(void) {
 }
 
 
+
 //============================================
-//	specific private metods (funcs) for cl_BME680
+//	BME680, Bosch Document rev.: 1.9, Date: February 2024, Document N: BST-BME680-DS001-09
+//	cl_BME680, private metods (funcs)
 //============================================
 /*	@brief Read Calibration Data to structure variable clv_cd */
 void cl_BME680::clf_readCalibData(void) {
@@ -412,10 +416,8 @@ void cl_BME680::clf_readCalibData(void) {
 #endif
 }
 
-
 //============================================
-//  public metods (funcs) for cl_BME680
-//	Bosch Document rev.: 1.9, Date: February 2024, Document N: BST-BME680-DS001-09
+//  cl_BME680, public metods (funcs)
 //============================================
 /*	@brief Send sensor command to Start Measuring 	*/
 void cl_BME680::do1Meas(void) {    // mode FORCED_MODE DO 1 Measuring
