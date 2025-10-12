@@ -10,7 +10,7 @@
 *		gv_*    -   Global Variable;
 *		lv_*    -   Local Variable (live inside statement);
 *		cl_*    -   CLass;
-*		cd_*    -   Class Definishion;
+*		cd_*    -   Class Definition;
 *		cgv_*   -   Class public (Global) member (Variable);
 *		clv_*   -   Class private (Local) member (Variable);
 *		cgf_*   -   Class public (Global) metod (Function), not need, no usefull, becouse we see parenthesis => ();
