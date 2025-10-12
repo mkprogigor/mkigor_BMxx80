@@ -23,8 +23,6 @@ void setup() {
 }
 
 void loop() {
-
-
   bme.initGasPointX(0, 350, 100, (int16_t)gv_stru_tph.temp1);
   bme.do1Meas();
   unsigned long lv_measStart = millis();
