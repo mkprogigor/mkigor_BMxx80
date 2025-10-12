@@ -1,21 +1,21 @@
-/*
-	@brief		C++ library Arduino framework for Bosch sensors: BMP280, BME280, BME680, via i2c.
-	@author		Igor Mkprog, mkprogigor@gmail.com
-	@version	V1.1	@date	10.10.2025
-
-	@remarks	Glossary, abbreviations used in the module.
-	@details	Name of functions dont use symbol '_', only small or capital letters.
-				Symbol '_' divide name in: prefix _ name _ suffix:
-	@var		gv_*    -   Global Variable;
-				lv_*    -   Local Variable (live inside statement);
-				cl_*    -   CLass;
-				cd_*    -   Class Definishion;
-				cgv_*   -   Class public (Global) member (Variable);
-				clv_*   -   Class private (Local) member (Variable);
-				cgf_*   -   Class public (Global) metod (Function), not need, no usefull, becouse we see parenthesis => ();
-				clf_*   -   Class private (Local) metod (Function);
-				lp_		-	in function, local parameter
-				*_stru  -   [or *_stru_t] suffix, as usual, point the type.
+/**
+*	@brief		C++ library Arduino framework for Bosch sensors: BMP280, BME280, BME680, via i2c.
+*	@author		Igor Mkprog, mkprogigor@gmail.com
+*	@version	V1.1	@date	10.10.2025
+*
+*	@remarks	Glossary, abbreviations used in the module.
+*	@details	Name of functions dont use symbol '_', only small or capital letters.
+*				Symbol '_' divide name in: prefix _ name _ suffix:
+*	@var		gv_*    -   Global Variable;
+*				lv_*    -   Local Variable (live inside statement);
+*				cl_*    -   CLass;
+*				cd_*    -   Class Definishion;
+*				cgv_*   -   Class public (Global) member (Variable);
+*				clv_*   -   Class private (Local) member (Variable);
+*				cgf_*   -   Class public (Global) metod (Function), not need, no usefull, becouse we see parenthesis => ();
+*				clf_*   -   Class private (Local) metod (Function);
+*				lp_		-	in function, local parameter
+*				*_stru  -   [or *_stru_t] suffix, as usual, point the type.
 */
 
 #include <Arduino.h>
