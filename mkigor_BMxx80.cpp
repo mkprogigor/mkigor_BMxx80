@@ -2,11 +2,12 @@
 *	@brief		C++ library Arduino framework for Bosch sensors: BMP280, BME280, BME680, via i2c.
 *	@author		Igor Mkprog, mkprogigor@gmail.com
 *	@version	V1.1	@date	10.10.2025
+*	@example	https://github.com/mkprogigor/mkigor_BMxx80/blob/main/examples/test_bme680.ino
 *
 *	@remarks	Glossary, abbreviations used in the module.
-*	@details	Name of functions dont use symbol '_', only small or capital letters.
-*				Symbol '_' divide name in: prefix _ name _ suffix:
-*	@var		gv_*    -   Global Variable;
+*				Name of functions dont use symbol '_', only small or capital letters.
+*				Symbol '_' divide name in: prefix_name_suffix:
+*				gv_*    -   Global Variable;
 *				lv_*    -   Local Variable (live inside statement);
 *				cl_*    -   CLass;
 *				cd_*    -   Class Definishion;
