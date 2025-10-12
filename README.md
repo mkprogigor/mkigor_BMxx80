@@ -1,12 +1,12 @@
 # mkigor_BMxx80 (BMP280, BME280, BME680)
 Lightweight and short library for Bosch sensor BME280, BMP280, BME680 for Arduino.
-It is not pretend to the most optimal code, but it is example of learning C++ OOP for programing MCU: classes, encapsulating metods (functions), inheritance classes.
+It is not pretend to the most optimal code, but it is example of learning C++ OOP for programing MCU: classes, encapsulating methods (functions), inheritance classes.
 Classes cl_BME280, cl_BME680 inherit from cl_BMP280.
 
 ## BMP280, BME280, BME680
 By default, lib focused on one time measuring (forced mode, but normal available too).<BR>
 
-Function (metod) => `uint8_t check(uint8_t lv_i2caddr)`<BR>
+Function (method) => `uint8_t check(uint8_t lv_i2caddr)`<BR>
 It must be call 1st, because it checks presence of sensor!<BR>
 Fn check connection with sensor by I2C address `lv_i2caddr` (usually 0x76 or 0x77).<BR>
 Fn return byte: 0 = if sensor does not present or CHIP CODE in otherwise.<BR>
