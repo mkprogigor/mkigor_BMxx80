@@ -1,6 +1,6 @@
 # mkigor_BMxx80 (BMP280, BME280, BME680)
 Lightweight and short library for Bosch sensor BME280, BMP280, BME680 for Arduino.
-It is not pretend to the most optimal code, but it is example of learning C++ OOP for programing MCU: classes, encapsulating methods (functions), inheritance classes.
+It is not pretend to the most optimal code, but it is example of learning C++ OOP for programing MCU: classes, encapsulating methods, inheritance classes, polymorphism, abstraction.
 Classes cl_BME280, cl_BME680 inherit from cl_BMP280.
 
 ## BMP280, BME280, BME680
