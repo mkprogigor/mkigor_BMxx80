@@ -6,7 +6,7 @@
 *
 *	@remarks	Glossary, abbreviations used in the module.
 *				Name of functions dont use symbol '_', only small or capital letters.
-*				Symbol '_' divide name in: prefix_name_suffix:
+*				Symbol '_' divide name in: prefix_nameOfFunction_suffix (it can be only 2 in name):
 *				gv_*    -   Global Variable;
 *				lv_*    -   Local Variable (live inside statement);
 *				cl_*    -   CLass;
@@ -17,6 +17,7 @@
 *				clf_*   -   Class private (Local) metod (Function);
 *				lp_		-	in function, local parameter
 *				*_stru  -   [or *_stru_t] suffix, as usual, point the type.
+*	example: gv_tphg_stru - global var structure.
 */
 
 #include <mkigor_BMxx80.h>
