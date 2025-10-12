@@ -5,19 +5,19 @@
 *	@example	https://github.com/mkprogigor/mkigor_BMxx80/blob/main/examples/test_bme680.ino
 *
 *	@remarks	Glossary, abbreviations used in the module.
-*				Name of functions dont use symbol '_', only small or capital letters.
-*				Symbol '_' divide name in: prefix_nameOfFunction_suffix (it can be only 2 in name):
-*				gv_*    -   Global Variable;
-*				lv_*    -   Local Variable (live inside statement);
-*				cl_*    -   CLass;
-*				cd_*    -   Class Definishion;
-*				cgv_*   -   Class public (Global) member (Variable);
-*				clv_*   -   Class private (Local) member (Variable);
-*				cgf_*   -   Class public (Global) metod (Function), not need, no usefull, becouse we see parenthesis => ();
-*				clf_*   -   Class private (Local) metod (Function);
-*				lp_		-	in function, local parameter
-*				*_stru  -   [or *_stru_t] suffix, as usual, point the type.
-*	example: gv_tphg_stru - global var structure.
+*		Name of functions dont use symbol '_', only small or capital letters.
+*		Symbol '_' divide name in: prefix_nameOfFunction_suffix (it can be only 2 '_' in name):
+*		gv_*    -   Global Variable;
+*		lv_*    -   Local Variable (live inside statement);
+*		cl_*    -   CLass;
+*		cd_*    -   Class Definishion;
+*		cgv_*   -   Class public (Global) member (Variable);
+*		clv_*   -   Class private (Local) member (Variable);
+*		cgf_*   -   Class public (Global) metod (Function), not need, no usefull, becouse we see parenthesis => ();
+*		clf_*   -   Class private (Local) metod (Function);
+*		lp_		-	in function, local parameter
+*		*_stru  -   [or *_stru_t] suffix, as usual, point the type.
+*	    example: gv_tphg_stru - global var structure.
 */
 
 #include <mkigor_BMxx80.h>
